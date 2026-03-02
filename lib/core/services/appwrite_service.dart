@@ -1,4 +1,5 @@
 import 'package:appwrite/appwrite.dart';
+import 'package:flutter/foundation.dart';
 import '../config/appwrite_config.dart';
 
 /// Appwrite service for managing backend operations
@@ -23,6 +24,34 @@ class AppwriteService {
 
     _databases = Databases(_client);
     _account = Account(_client);
+  }
+
+  /// Perform a silent login using a unified service account to bypass Appwrite auth requirements.
+  /// First checks if a session exists to avoid redundant login calls.
+  Future<void> performSilentLogin() async {
+    try {
+      // 1. Check if a session already exists
+      await _account.get();
+      debugPrint('✅ Appwrite: Already logged in silently.');
+    } on AppwriteException catch (e) {
+      // 2. If we get a 401 error, it means we are a Guest. Time to log in!
+      if (e.code == 401) {
+        debugPrint('⏳ Appwrite: No session found. Performing silent login...');
+        try {
+          await _account.createEmailPasswordSession(
+            email: 'interviewer@acme.com', // Service account email
+            password: 'acmepassword123', // Service account password
+          );
+          debugPrint('✅ Appwrite: Silent login successful!');
+        } catch (loginError) {
+          debugPrint('❌ Appwrite: Silent login failed: $loginError');
+        }
+      } else {
+        debugPrint('❌ Appwrite: Unexpected error checking session: $e');
+      }
+    } catch (e) {
+      debugPrint('❌ Appwrite: Unknown error during silent login check: $e');
+    }
   }
 
   /// Get databases instance
@@ -50,9 +79,9 @@ class AppwriteService {
         documentId: interviewId,
         data: {'driveFileId': driveFileId, 'driveFileUrl': driveFileUrl},
       );
-      print('✅ Updated interview $interviewId with Drive info');
+      debugPrint('✅ Updated interview $interviewId with Drive info');
     } catch (e) {
-      print('❌ Failed to update interview with Drive info: $e');
+      debugPrint('❌ Failed to update interview with Drive info: $e');
       rethrow;
     }
   }

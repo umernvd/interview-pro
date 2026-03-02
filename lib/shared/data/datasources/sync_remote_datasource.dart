@@ -125,6 +125,26 @@ class SyncRemoteDatasource {
         interviewerId: interviewerId,
       );
 
+      // Resolve the exact Company ID
+      final targetCompanyId = companyId ?? AppwriteConfig.testCompanyId;
+
+      // Prepare the payload
+      final data = <String, dynamic>{
+        'candidateId': candidateId,
+        'driveFileId': driveFileId,
+        'driveFileUrl': driveFileUrl,
+        'companyId': targetCompanyId,
+        'interviewerId': interviewerId ?? AppwriteConfig.testInterviewerId,
+      };
+      if (driveFolderId != null) data['driveFolderId'] = driveFolderId;
+
+      // Define strict Team-based permissions
+      final strictPermissions = [
+        Permission.read(Role.team(targetCompanyId)),
+        Permission.update(Role.team(targetCompanyId)),
+        Permission.delete(Role.team(targetCompanyId)),
+      ];
+
       // Check if document exists first (idempotency)
       try {
         await databases.getDocument(
@@ -134,22 +154,16 @@ class SyncRemoteDatasource {
         );
 
         // Update if exists
-        final data = <String, dynamic>{
-          'candidateId': candidateId,
-          'driveFileId': driveFileId,
-          'driveFileUrl': driveFileUrl,
-          'companyId': companyId ?? AppwriteConfig.testCompanyId,
-          'interviewerId': interviewerId ?? AppwriteConfig.testInterviewerId,
-        };
-        if (driveFolderId != null) data['driveFolderId'] = driveFolderId;
-
         await databases.updateDocument(
           databaseId: AppwriteConfig.databaseId,
           collectionId: AppwriteConfig.interviewsCollectionId,
           documentId: interviewId,
           data: data,
+          permissions: strictPermissions,
         );
-        debugPrint('🔄 Updated existing interview metadata: $interviewId');
+        debugPrint(
+          '🔄 Updated existing interview metadata (secured): $interviewId',
+        );
       } catch (e) {
         // Create if not exists (Expected flow for new interviews in this sidecar pattern)
         if (e is AppwriteException && e.code == 404) {
@@ -157,17 +171,12 @@ class SyncRemoteDatasource {
             databaseId: AppwriteConfig.databaseId,
             collectionId: AppwriteConfig.interviewsCollectionId,
             documentId: interviewId,
-            data: {
-              'candidateId': candidateId,
-              'driveFileId': driveFileId,
-              'driveFileUrl': driveFileUrl,
-              'driveFolderId': driveFolderId,
-              'companyId': companyId ?? AppwriteConfig.testCompanyId,
-              'interviewerId':
-                  interviewerId ?? AppwriteConfig.testInterviewerId,
-            },
+            data: data,
+            permissions: strictPermissions,
           );
-          debugPrint('✨ Created new interview metadata record: $interviewId');
+          debugPrint(
+            '✨ Created new interview metadata record (secured): $interviewId',
+          );
         } else {
           rethrow;
         }

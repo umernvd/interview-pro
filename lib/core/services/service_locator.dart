@@ -29,6 +29,7 @@ Future<void> initializeDependencies() async {
   // Initialize Appwrite service first
   sl.registerLazySingleton<AppwriteService>(() => AppwriteService.instance);
   sl<AppwriteService>().initialize();
+  await sl<AppwriteService>().performSilentLogin();
 
   // Data sources
   sl.registerLazySingleton<RoleRemoteDatasource>(
