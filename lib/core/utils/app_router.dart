@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
+import '../../features/auth/presentation/pages/login_screen.dart';
 import '../../features/interview/presentation/pages/interview_setup_page.dart';
 import '../../features/interview/presentation/pages/experience_level_page.dart';
 import '../../features/interview/presentation/pages/interview_question_page.dart';
@@ -12,6 +13,7 @@ import '../../features/interview/presentation/pages/report_preview_page.dart';
 class AppRouter {
   // Route paths
   static const String splash = '/';
+  static const String login = '/login';
   static const String dashboard = '/dashboard';
   static const String interview = '/interview';
   static const String experienceLevel = '/experience-level';
@@ -27,6 +29,11 @@ class AppRouter {
         path: splash,
         name: 'splash',
         builder: (context, state) => const SplashPage(),
+      ),
+      GoRoute(
+        path: login,
+        name: 'login',
+        builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
         path: dashboard,

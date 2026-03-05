@@ -14,7 +14,9 @@ import 'transcription_service.dart';
 import 'drive_service.dart';
 import 'upload_queue_service.dart';
 import '../providers/auth_provider.dart';
+import '../providers/auth_state_provider.dart';
 import '../../shared/data/datasources/sync_remote_datasource.dart';
+import 'auth_service.dart';
 
 /// Service locator for dependency injection
 final GetIt sl = GetIt.instance;
@@ -62,13 +64,19 @@ Future<void> initializeDependencies() async {
   );
 
   // Services
-  // Services
   sl.registerLazySingleton<DriveService>(
     () => DriveService(), // Client updated dynamically by AuthProvider
   );
 
   sl.registerLazySingleton<AuthProvider>(
     () => AuthProvider(sl<DriveService>()),
+  );
+
+  // Magic Auth Code Login - AuthStateProvider and AuthService
+  sl.registerLazySingleton<AuthStateProvider>(() => AuthStateProvider());
+
+  sl.registerLazySingleton<AuthService>(
+    () => AuthService(sl<AppwriteService>(), sl<AuthStateProvider>()),
   );
 
   sl.registerLazySingleton<InterviewSessionManager>(

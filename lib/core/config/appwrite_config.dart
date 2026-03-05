@@ -15,6 +15,7 @@ class AppwriteConfig {
   static const String interviewsCollectionId = 'interviews';
   static const String questionsCollectionId = 'questions';
   static const String evaluationsCollectionId = 'evaluations';
+  static const String interviewersCollectionId = 'interviewers';
 
   /// Check if Appwrite is properly configured
   static bool get isConfigured => SetupHelper.isSetupComplete;
