@@ -2,12 +2,14 @@ import 'package:appwrite/appwrite.dart';
 import 'package:flutter/foundation.dart';
 import '../../../../core/config/appwrite_config.dart';
 import '../../../../core/services/appwrite_service.dart';
+import '../../../../core/providers/auth_state_provider.dart';
 
 /// Dedicated datasource for sync operations to keep "Sidecar" logic isolated
 class SyncRemoteDatasource {
   final AppwriteService _appwriteService;
+  final AuthStateProvider _authStateProvider;
 
-  SyncRemoteDatasource(this._appwriteService);
+  SyncRemoteDatasource(this._appwriteService, this._authStateProvider);
 
   /// Get or Create a Candidate in Appwrite
   /// Returns the Candidate ID
@@ -187,13 +189,22 @@ class SyncRemoteDatasource {
     }
   }
 
-  /// Get candidate by email (to check for existing CV)
+  /// Get candidate by email with tenant isolation
   Future<Map<String, dynamic>?> getCandidateByEmail(String email) async {
     try {
+      // Validate auth state for tenant isolation
+      final companyId = _authStateProvider.companyId;
+      if (companyId == null) {
+        throw Exception('User not authenticated: companyId is null');
+      }
+
       final response = await _appwriteService.databases.listDocuments(
         databaseId: AppwriteConfig.databaseId,
         collectionId: AppwriteConfig.candidatesCollectionId,
-        queries: [Query.equal('email', email)],
+        queries: [
+          Query.equal('email', email),
+          Query.equal('companyId', companyId), // TENANT ISOLATION
+        ],
       );
 
       if (response.documents.isNotEmpty) {

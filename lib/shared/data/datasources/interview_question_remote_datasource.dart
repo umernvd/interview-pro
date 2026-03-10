@@ -1,6 +1,9 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../../core/services/appwrite_service.dart';
+import '../../../core/providers/auth_state_provider.dart';
 import '../../domain/entities/interview_question.dart';
 import '../../domain/entities/question_category.dart';
 
@@ -45,13 +48,21 @@ abstract class InterviewQuestionRemoteDatasource {
 class InterviewQuestionRemoteDatasourceImpl
     implements InterviewQuestionRemoteDatasource {
   final AppwriteService _appwriteService;
+  final AuthStateProvider _authStateProvider;
   late final Databases _databases;
 
   // Collection IDs
   static const String questionsCollectionId = 'questions';
   static const String categoriesCollectionId = 'question_categories';
 
-  InterviewQuestionRemoteDatasourceImpl(this._appwriteService) {
+  // Next.js API endpoint for random questions
+  static const String _randomQuestionsApiUrl =
+      'https://harlan-sheaflike-raymond.ngrok-free.dev/api/questions/random';
+
+  InterviewQuestionRemoteDatasourceImpl(
+    this._appwriteService,
+    this._authStateProvider,
+  ) {
     _databases = _appwriteService.databases;
   }
 
@@ -88,7 +99,7 @@ class InterviewQuestionRemoteDatasourceImpl
   }
 
   @override
-  /// Get all interview questions
+  /// Get all interview questions with tenant isolation
   Future<List<InterviewQuestion>> getQuestions({
     String? category,
     String? difficulty,
@@ -98,9 +109,16 @@ class InterviewQuestionRemoteDatasourceImpl
     int limit = 100,
   }) async {
     try {
+      // Validate auth state for tenant isolation
+      final companyId = _authStateProvider.companyId;
+      if (companyId == null) {
+        throw Exception('User not authenticated: companyId is null');
+      }
+
       final queries = <String>[
         Query.limit(limit),
         Query.equal('isActive', true),
+        Query.equal('companyId', companyId), // TENANT ISOLATION
         Query.orderDesc('\$createdAt'),
       ];
 
@@ -170,7 +188,7 @@ class InterviewQuestionRemoteDatasourceImpl
   }
 
   @override
-  /// Get random questions for interview
+  /// Get random questions for interview via Next.js API
   Future<List<InterviewQuestion>> getRandomQuestions({
     required int count,
     String? category,
@@ -178,21 +196,74 @@ class InterviewQuestionRemoteDatasourceImpl
     String? roleSpecific,
     String? experienceLevel,
   }) async {
-    final allQuestions = await getQuestions(
-      category: category,
-      difficulty: difficulty,
-      roleSpecific: roleSpecific,
-      experienceLevel: experienceLevel,
-      limit: 200, // Get more to have better randomization
-    );
+    try {
+      // Validate auth state
+      final companyId = _authStateProvider.companyId;
+      if (companyId == null) {
+        throw Exception('User not authenticated: companyId is null');
+      }
 
-    if (allQuestions.length <= count) {
-      return allQuestions;
+      // Build query parameters
+      final queryParams = <String, String>{
+        'companyId': companyId,
+        'roleId': ?roleSpecific,
+        'experienceLevelId': ?experienceLevel,
+      };
+
+      // Build URL with query parameters
+      final uri = Uri.parse(
+        _randomQuestionsApiUrl,
+      ).replace(queryParameters: queryParams);
+
+      debugPrint('🔄 Fetching random questions from: $uri');
+
+      // Make HTTP GET request with ngrok bypass header
+      final response = await http
+          .get(
+            uri,
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              'Content-Type': 'application/json',
+            },
+          )
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () =>
+                throw Exception('Request timeout: API did not respond'),
+          );
+
+      // Handle response
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+
+        // Parse the JSON array into InterviewQuestion objects
+        final List<dynamic> questionsJson = jsonData is List
+            ? jsonData
+            : (jsonData['questions'] ?? []);
+
+        if (questionsJson.isEmpty) {
+          throw Exception('No questions returned from API');
+        }
+
+        final questions = questionsJson
+            .map((q) => InterviewQuestion.fromJson(q as Map<String, dynamic>))
+            .toList();
+
+        debugPrint(
+          '✅ Successfully fetched ${questions.length} random questions from API',
+        );
+        return questions;
+      } else {
+        final errorBody = response.body;
+        debugPrint('❌ API error (${response.statusCode}): $errorBody');
+        throw Exception(
+          'Failed to fetch questions: ${response.statusCode} - $errorBody',
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ Error fetching random questions: $e');
+      throw Exception('Failed to fetch random questions: $e');
     }
-
-    // Shuffle and take the requested count
-    allQuestions.shuffle();
-    return allQuestions.take(count).toList();
   }
 
   @override
@@ -247,13 +318,23 @@ class InterviewQuestionRemoteDatasourceImpl
   }
 
   @override
-  /// Get all question categories
+  /// Get all question categories with tenant isolation
   Future<List<QuestionCategoryEntity>> getCategories() async {
     try {
+      // Validate auth state for tenant isolation
+      final companyId = _authStateProvider.companyId;
+      if (companyId == null) {
+        throw Exception('User not authenticated: companyId is null');
+      }
+
       final response = await _databases.listDocuments(
         databaseId: _appwriteService.databaseId,
         collectionId: categoriesCollectionId,
-        queries: [Query.equal('isActive', true), Query.orderAsc('name')],
+        queries: [
+          Query.equal('isActive', true),
+          Query.equal('companyId', companyId), // TENANT ISOLATION
+          Query.orderAsc('name'),
+        ],
       );
 
       return response.documents

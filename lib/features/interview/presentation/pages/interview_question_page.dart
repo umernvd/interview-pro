@@ -8,6 +8,8 @@ import '../../../../core/utils/app_router.dart';
 import '../../../../core/theme/app_theme_extensions.dart';
 import '../../../../core/services/service_locator.dart';
 import '../../../../core/services/interview_session_manager.dart';
+import '../../../../core/services/interview_media_upload_service.dart';
+import '../../../../core/providers/auth_state_provider.dart';
 import '../../../../shared/domain/entities/interview_question.dart';
 import '../providers/interview_question_provider.dart';
 import '../providers/voice_recording_provider.dart';
@@ -57,12 +59,14 @@ class _InterviewQuestionPageState extends State<InterviewQuestionPage>
 
   // Interview session manager
   late final InterviewSessionManager _sessionManager;
+  late final AuthStateProvider _authStateProvider;
   bool _sessionStarted = false;
 
   @override
   void initState() {
     super.initState();
     _sessionManager = sl<InterviewSessionManager>();
+    _authStateProvider = sl<AuthStateProvider>();
     _loadQuestions();
   }
 
@@ -1037,19 +1041,81 @@ class _InterviewQuestionPageState extends State<InterviewQuestionPage>
       if (mounted) {
         Navigator.pop(context); // Remove loading
 
-        // Show Uploading Feedback
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Interview Completed - Uploading Recording... ☁️'),
-            backgroundColor: AppColors.primary,
-            duration: Duration(seconds: 4),
-          ),
-        );
+        // Show non-dismissible upload overlay
+        if (mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            barrierColor: Colors.black.withOpacity(0.3),
+            builder: (context) => const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
+          );
+        }
 
-        // Navigate to candidate evaluation page with interview data
-        context.go(
-          '${AppRouter.candidateEvaluation}?candidateName=${Uri.encodeComponent(completedInterview.candidateName)}&candidateEmail=${Uri.encodeComponent(widget.candidateEmail ?? '')}&role=${Uri.encodeComponent(completedInterview.roleName)}&level=${Uri.encodeComponent(completedInterview.level.name)}&interviewId=${completedInterview.id}',
-        );
+        // Upload media file to Next.js backend
+        try {
+          final mediaUploadService = sl<InterviewMediaUploadService>();
+
+          final uploadResponse = await mediaUploadService.uploadInterviewMedia(
+            mediaFilePath: recordingPath ?? '',
+            candidateName: completedInterview.candidateName,
+            roleName: completedInterview.roleName,
+            companyId: _authStateProvider.companyId,
+          );
+
+          if (!mounted) return;
+
+          // Close upload overlay
+          Navigator.pop(context);
+
+          debugPrint('✅ Media upload successful');
+          debugPrint('🔗 Drive File URL: ${uploadResponse['driveFileUrl']}');
+
+          // Get interviewId from backend response (backend is source of truth)
+          final backendInterviewId = uploadResponse['interviewId'] as String?;
+          if (backendInterviewId == null) {
+            throw Exception('Backend did not return interviewId');
+          }
+
+          // Show success feedback
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Interview Uploaded Successfully ✅'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+
+          // Navigate to candidate evaluation page with backend-generated interviewId
+          if (mounted) {
+            context.go(
+              '${AppRouter.candidateEvaluation}?candidateName=${Uri.encodeComponent(completedInterview.candidateName)}&candidateEmail=${Uri.encodeComponent(widget.candidateEmail ?? '')}&role=${Uri.encodeComponent(completedInterview.roleName)}&level=${Uri.encodeComponent(completedInterview.level.name)}&interviewId=${Uri.encodeComponent(backendInterviewId)}',
+            );
+          }
+        } catch (uploadError) {
+          if (!mounted) return;
+
+          // Close upload overlay
+          Navigator.pop(context);
+
+          debugPrint('❌ Media upload failed: $uploadError');
+
+          // CRITICAL: DO NOT navigate on upload failure
+          // Show error and allow user to retry
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Upload failed: $uploadError. Please try again.'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+
+          // Stay on current screen - user can retry "Complete Interview"
+          // The media file is still available for retry
+        }
       }
     } catch (e) {
       if (mounted) {

@@ -1,6 +1,7 @@
 import 'package:appwrite/appwrite.dart';
 import '../../../core/config/appwrite_config.dart';
 import '../../../core/services/appwrite_service.dart';
+import '../../../core/providers/auth_state_provider.dart';
 import '../models/role_model.dart';
 
 /// Abstract remote datasource for Role operations
@@ -16,17 +17,28 @@ abstract class RoleRemoteDatasource {
 /// Implementation of remote datasource for Role operations using Appwrite
 class RoleRemoteDatasourceImpl implements RoleRemoteDatasource {
   final AppwriteService _appwriteService;
+  final AuthStateProvider _authStateProvider;
 
-  RoleRemoteDatasourceImpl(this._appwriteService);
+  RoleRemoteDatasourceImpl(this._appwriteService, this._authStateProvider);
 
   @override
-  /// Get all active roles from Appwrite
+  /// Get all active roles from Appwrite with tenant isolation
   Future<List<RoleModel>> getRoles() async {
     try {
+      // Validate auth state for tenant isolation
+      final companyId = _authStateProvider.companyId;
+      if (companyId == null) {
+        throw Exception('User not authenticated: companyId is null');
+      }
+
       final response = await _appwriteService.databases.listDocuments(
         databaseId: AppwriteConfig.databaseId,
         collectionId: AppwriteConfig.rolesCollectionId,
-        queries: [Query.equal('isActive', true), Query.orderAsc('name')],
+        queries: [
+          Query.equal('isActive', true),
+          Query.equal('companyId', companyId), // TENANT ISOLATION
+          Query.orderAsc('name'),
+        ],
       );
 
       return response.documents
@@ -105,13 +117,22 @@ class RoleRemoteDatasourceImpl implements RoleRemoteDatasource {
   }
 
   @override
-  /// Check if any roles exist in the collection
+  /// Check if any roles exist in the collection with tenant isolation
   Future<bool> hasRoles() async {
     try {
+      // Validate auth state for tenant isolation
+      final companyId = _authStateProvider.companyId;
+      if (companyId == null) {
+        throw Exception('User not authenticated: companyId is null');
+      }
+
       final response = await _appwriteService.databases.listDocuments(
         databaseId: AppwriteConfig.databaseId,
         collectionId: AppwriteConfig.rolesCollectionId,
-        queries: [Query.limit(1)],
+        queries: [
+          Query.limit(1),
+          Query.equal('companyId', companyId), // TENANT ISOLATION
+        ],
       );
 
       return response.documents.isNotEmpty;

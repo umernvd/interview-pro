@@ -13,6 +13,7 @@ import 'data_management_service.dart';
 import 'transcription_service.dart';
 import 'drive_service.dart';
 import 'upload_queue_service.dart';
+import 'interview_media_upload_service.dart';
 import '../providers/auth_provider.dart';
 import '../providers/auth_state_provider.dart';
 import '../../shared/data/datasources/sync_remote_datasource.dart';
@@ -35,7 +36,10 @@ Future<void> initializeDependencies() async {
 
   // Data sources
   sl.registerLazySingleton<RoleRemoteDatasource>(
-    () => RoleRemoteDatasourceImpl(sl<AppwriteService>()),
+    () => RoleRemoteDatasourceImpl(
+      sl<AppwriteService>(),
+      sl<AuthStateProvider>(),
+    ),
   );
 
   sl.registerLazySingleton<ExperienceLevelRemoteDatasource>(
@@ -43,7 +47,10 @@ Future<void> initializeDependencies() async {
   );
 
   sl.registerLazySingleton<InterviewQuestionRemoteDatasource>(
-    () => InterviewQuestionRemoteDatasourceImpl(sl<AppwriteService>()),
+    () => InterviewQuestionRemoteDatasourceImpl(
+      sl<AppwriteService>(),
+      sl<AuthStateProvider>(),
+    ),
   );
 
   // Repositories
@@ -101,9 +108,14 @@ Future<void> initializeDependencies() async {
 
   sl.registerLazySingleton<TranscriptionService>(() => TranscriptionService());
 
+  // Interview Media Upload Service
+  sl.registerLazySingleton<InterviewMediaUploadService>(
+    () => InterviewMediaUploadService(sl<AuthStateProvider>()),
+  );
+
   // Sync Service (Sidecar)
   sl.registerLazySingleton<SyncRemoteDatasource>(
-    () => SyncRemoteDatasource(sl<AppwriteService>()),
+    () => SyncRemoteDatasource(sl<AppwriteService>(), sl<AuthStateProvider>()),
   );
 
   // Initialize data sources
