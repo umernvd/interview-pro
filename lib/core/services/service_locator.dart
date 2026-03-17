@@ -43,7 +43,10 @@ Future<void> initializeDependencies() async {
   );
 
   sl.registerLazySingleton<ExperienceLevelRemoteDatasource>(
-    () => ExperienceLevelRemoteDatasourceImpl(),
+    () => ExperienceLevelRemoteDatasourceImpl(
+      sl<AppwriteService>(),
+      sl<AuthStateProvider>(),
+    ),
   );
 
   sl.registerLazySingleton<InterviewQuestionRemoteDatasource>(

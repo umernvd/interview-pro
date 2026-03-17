@@ -28,24 +28,14 @@ import 'package:mockito/mockito.dart' as _i1;
 
 class _FakeInterviewQuestion_0 extends _i1.SmartFake
     implements _i2.InterviewQuestion {
-  _FakeInterviewQuestion_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeInterviewQuestion_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 class _FakeQuestionCategoryEntity_1 extends _i1.SmartFake
     implements _i3.QuestionCategoryEntity {
-  _FakeQuestionCategoryEntity_1(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeQuestionCategoryEntity_1(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
 }
 
 /// A class which mocks [InterviewQuestionRepository].
@@ -58,22 +48,20 @@ class MockInterviewQuestionRepository extends _i1.Mock
   }
 
   @override
-  _i5.Future<bool> hasQuestions() => (super.noSuchMethod(
-        Invocation.method(
-          #hasQuestions,
-          [],
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+  _i5.Future<bool> hasQuestions() =>
+      (super.noSuchMethod(
+            Invocation.method(#hasQuestions, []),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
 
   @override
-  _i5.Future<bool> hasCategories() => (super.noSuchMethod(
-        Invocation.method(
-          #hasCategories,
-          [],
-        ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+  _i5.Future<bool> hasCategories() =>
+      (super.noSuchMethod(
+            Invocation.method(#hasCategories, []),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
 
   @override
   _i5.Future<List<_i2.InterviewQuestion>> getQuestions({
@@ -84,55 +72,52 @@ class MockInterviewQuestionRepository extends _i1.Mock
     int limit = 100,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getQuestions,
-          [],
-          {
-            #category: category,
-            #difficulty: difficulty,
-            #roleSpecific: roleSpecific,
-            #tags: tags,
-            #limit: limit,
-          },
-        ),
-        returnValue: _i5.Future<List<_i2.InterviewQuestion>>.value(
-            <_i2.InterviewQuestion>[]),
-      ) as _i5.Future<List<_i2.InterviewQuestion>>);
+            Invocation.method(#getQuestions, [], {
+              #category: category,
+              #difficulty: difficulty,
+              #roleSpecific: roleSpecific,
+              #tags: tags,
+              #limit: limit,
+            }),
+            returnValue: _i5.Future<List<_i2.InterviewQuestion>>.value(
+              <_i2.InterviewQuestion>[],
+            ),
+          )
+          as _i5.Future<List<_i2.InterviewQuestion>>);
 
   @override
   _i5.Future<List<_i2.InterviewQuestion>> getQuestionsByCategory(
-          String? category) =>
+    String? category,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getQuestionsByCategory,
-          [category],
-        ),
-        returnValue: _i5.Future<List<_i2.InterviewQuestion>>.value(
-            <_i2.InterviewQuestion>[]),
-      ) as _i5.Future<List<_i2.InterviewQuestion>>);
+            Invocation.method(#getQuestionsByCategory, [category]),
+            returnValue: _i5.Future<List<_i2.InterviewQuestion>>.value(
+              <_i2.InterviewQuestion>[],
+            ),
+          )
+          as _i5.Future<List<_i2.InterviewQuestion>>);
 
   @override
   _i5.Future<List<_i2.InterviewQuestion>> getQuestionsByDifficulty(
-          String? difficulty) =>
+    String? difficulty,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getQuestionsByDifficulty,
-          [difficulty],
-        ),
-        returnValue: _i5.Future<List<_i2.InterviewQuestion>>.value(
-            <_i2.InterviewQuestion>[]),
-      ) as _i5.Future<List<_i2.InterviewQuestion>>);
+            Invocation.method(#getQuestionsByDifficulty, [difficulty]),
+            returnValue: _i5.Future<List<_i2.InterviewQuestion>>.value(
+              <_i2.InterviewQuestion>[],
+            ),
+          )
+          as _i5.Future<List<_i2.InterviewQuestion>>);
 
   @override
   _i5.Future<List<_i2.InterviewQuestion>> getQuestionsByRole(String? role) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getQuestionsByRole,
-          [role],
-        ),
-        returnValue: _i5.Future<List<_i2.InterviewQuestion>>.value(
-            <_i2.InterviewQuestion>[]),
-      ) as _i5.Future<List<_i2.InterviewQuestion>>);
+            Invocation.method(#getQuestionsByRole, [role]),
+            returnValue: _i5.Future<List<_i2.InterviewQuestion>>.value(
+              <_i2.InterviewQuestion>[],
+            ),
+          )
+          as _i5.Future<List<_i2.InterviewQuestion>>);
 
   @override
   _i5.Future<List<_i2.InterviewQuestion>> getRandomQuestions({
@@ -140,138 +125,126 @@ class MockInterviewQuestionRepository extends _i1.Mock
     String? category,
     String? difficulty,
     String? roleSpecific,
+    String? experienceLevel,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getRandomQuestions,
-          [],
-          {
-            #count: count,
-            #category: category,
-            #difficulty: difficulty,
-            #roleSpecific: roleSpecific,
-          },
-        ),
-        returnValue: _i5.Future<List<_i2.InterviewQuestion>>.value(
-            <_i2.InterviewQuestion>[]),
-      ) as _i5.Future<List<_i2.InterviewQuestion>>);
+            Invocation.method(#getRandomQuestions, [], {
+              #count: count,
+              #category: category,
+              #difficulty: difficulty,
+              #roleSpecific: roleSpecific,
+              #experienceLevel: experienceLevel,
+            }),
+            returnValue: _i5.Future<List<_i2.InterviewQuestion>>.value(
+              <_i2.InterviewQuestion>[],
+            ),
+          )
+          as _i5.Future<List<_i2.InterviewQuestion>>);
 
   @override
   _i5.Future<_i2.InterviewQuestion> createQuestion(
-          _i2.InterviewQuestion? question) =>
+    _i2.InterviewQuestion? question,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createQuestion,
-          [question],
-        ),
-        returnValue:
-            _i5.Future<_i2.InterviewQuestion>.value(_FakeInterviewQuestion_0(
-          this,
-          Invocation.method(
-            #createQuestion,
-            [question],
-          ),
-        )),
-      ) as _i5.Future<_i2.InterviewQuestion>);
+            Invocation.method(#createQuestion, [question]),
+            returnValue: _i5.Future<_i2.InterviewQuestion>.value(
+              _FakeInterviewQuestion_0(
+                this,
+                Invocation.method(#createQuestion, [question]),
+              ),
+            ),
+          )
+          as _i5.Future<_i2.InterviewQuestion>);
 
   @override
   _i5.Future<_i2.InterviewQuestion> updateQuestion(
-          _i2.InterviewQuestion? question) =>
+    _i2.InterviewQuestion? question,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #updateQuestion,
-          [question],
-        ),
-        returnValue:
-            _i5.Future<_i2.InterviewQuestion>.value(_FakeInterviewQuestion_0(
-          this,
-          Invocation.method(
-            #updateQuestion,
-            [question],
-          ),
-        )),
-      ) as _i5.Future<_i2.InterviewQuestion>);
+            Invocation.method(#updateQuestion, [question]),
+            returnValue: _i5.Future<_i2.InterviewQuestion>.value(
+              _FakeInterviewQuestion_0(
+                this,
+                Invocation.method(#updateQuestion, [question]),
+              ),
+            ),
+          )
+          as _i5.Future<_i2.InterviewQuestion>);
 
   @override
-  _i5.Future<void> deleteQuestion(String? questionId) => (super.noSuchMethod(
-        Invocation.method(
-          #deleteQuestion,
-          [questionId],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+  _i5.Future<void> deleteQuestion(String? questionId) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteQuestion, [questionId]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
 
   @override
   _i5.Future<List<_i3.QuestionCategoryEntity>> getCategories() =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getCategories,
-          [],
-        ),
-        returnValue: _i5.Future<List<_i3.QuestionCategoryEntity>>.value(
-            <_i3.QuestionCategoryEntity>[]),
-      ) as _i5.Future<List<_i3.QuestionCategoryEntity>>);
+            Invocation.method(#getCategories, []),
+            returnValue: _i5.Future<List<_i3.QuestionCategoryEntity>>.value(
+              <_i3.QuestionCategoryEntity>[],
+            ),
+          )
+          as _i5.Future<List<_i3.QuestionCategoryEntity>>);
 
   @override
   _i5.Future<_i3.QuestionCategoryEntity> createCategory(
-          _i3.QuestionCategoryEntity? category) =>
+    _i3.QuestionCategoryEntity? category,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #createCategory,
-          [category],
-        ),
-        returnValue: _i5.Future<_i3.QuestionCategoryEntity>.value(
-            _FakeQuestionCategoryEntity_1(
-          this,
-          Invocation.method(
-            #createCategory,
-            [category],
-          ),
-        )),
-      ) as _i5.Future<_i3.QuestionCategoryEntity>);
+            Invocation.method(#createCategory, [category]),
+            returnValue: _i5.Future<_i3.QuestionCategoryEntity>.value(
+              _FakeQuestionCategoryEntity_1(
+                this,
+                Invocation.method(#createCategory, [category]),
+              ),
+            ),
+          )
+          as _i5.Future<_i3.QuestionCategoryEntity>);
 
   @override
   _i5.Future<List<_i2.InterviewQuestion>> bulkCreateQuestions(
-          List<Map<String, dynamic>>? questionsData) =>
+    List<Map<String, dynamic>>? questionsData,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #bulkCreateQuestions,
-          [questionsData],
-        ),
-        returnValue: _i5.Future<List<_i2.InterviewQuestion>>.value(
-            <_i2.InterviewQuestion>[]),
-      ) as _i5.Future<List<_i2.InterviewQuestion>>);
+            Invocation.method(#bulkCreateQuestions, [questionsData]),
+            returnValue: _i5.Future<List<_i2.InterviewQuestion>>.value(
+              <_i2.InterviewQuestion>[],
+            ),
+          )
+          as _i5.Future<List<_i2.InterviewQuestion>>);
 
   @override
   _i5.Future<List<_i3.QuestionCategoryEntity>> bulkCreateCategories(
-          List<Map<String, dynamic>>? categoriesData) =>
+    List<Map<String, dynamic>>? categoriesData,
+  ) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #bulkCreateCategories,
-          [categoriesData],
-        ),
-        returnValue: _i5.Future<List<_i3.QuestionCategoryEntity>>.value(
-            <_i3.QuestionCategoryEntity>[]),
-      ) as _i5.Future<List<_i3.QuestionCategoryEntity>>);
+            Invocation.method(#bulkCreateCategories, [categoriesData]),
+            returnValue: _i5.Future<List<_i3.QuestionCategoryEntity>>.value(
+              <_i3.QuestionCategoryEntity>[],
+            ),
+          )
+          as _i5.Future<List<_i3.QuestionCategoryEntity>>);
 
   @override
-  _i5.Future<Map<String, dynamic>> getQuestionStats() => (super.noSuchMethod(
-        Invocation.method(
-          #getQuestionStats,
-          [],
-        ),
-        returnValue:
-            _i5.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
-      ) as _i5.Future<Map<String, dynamic>>);
+  _i5.Future<Map<String, dynamic>> getQuestionStats() =>
+      (super.noSuchMethod(
+            Invocation.method(#getQuestionStats, []),
+            returnValue: _i5.Future<Map<String, dynamic>>.value(
+              <String, dynamic>{},
+            ),
+          )
+          as _i5.Future<Map<String, dynamic>>);
 
   @override
-  _i5.Future<void> initializeDefaultQuestions() => (super.noSuchMethod(
-        Invocation.method(
-          #initializeDefaultQuestions,
-          [],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+  _i5.Future<void> initializeDefaultQuestions() =>
+      (super.noSuchMethod(
+            Invocation.method(#initializeDefaultQuestions, []),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
 }
