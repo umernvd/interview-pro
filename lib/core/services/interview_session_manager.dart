@@ -116,23 +116,56 @@ class InterviewSessionManager extends ChangeNotifier {
     String? candidatePhone,
     String? candidateCvId,
     String? candidateCvUrl,
-    String? driveFolderId, // 🟢 Added parameter
-    required String role,
-    required String level,
+    String? cvFilePath,
+    String? driveFolderId,
+    required String roleString,
+    String? roleNameString,
+    required String levelString,
+    String? levelNameString,
     required List<InterviewQuestion> questions,
   }) async {
     try {
       // Enhanced input validation
-      _validateInterviewInput(candidateName, role, level, questions);
+      _validateInterviewInput(
+        candidateName,
+        roleString,
+        levelString,
+        questions,
+      );
 
       final sanitizedCandidateName = _sanitizeInput(candidateName);
+
+      // Create placeholder Role entity from string
+      final roleEntity = Role(
+        id: roleString,
+        name: (roleNameString != null && roleNameString.isNotEmpty)
+            ? roleNameString
+            : roleString.trim(),
+        icon: 'default',
+        description: roleString.trim(),
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      // Create placeholder ExperienceLevel entity from string
+      final levelEntity = ExperienceLevel(
+        id: levelString,
+        title: (levelNameString != null && levelNameString.isNotEmpty)
+            ? levelNameString
+            : levelString.trim(),
+        description: levelString.trim(),
+        sortOrder: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
       // Create new interview entity with secure ID
       final interview = Interview(
         id: _generateSecureInterviewId(sanitizedCandidateName),
         candidateName: sanitizedCandidateName,
-        role: _parseRole(role),
-        roleName: role.trim(),
-        level: _parseLevel(level),
+        role: roleEntity,
+        roleName: roleEntity.name,
+        level: levelEntity,
         startTime: DateTime.now(),
         lastModified: DateTime.now(),
         responses: [],
@@ -376,8 +409,7 @@ class InterviewSessionManager extends ChangeNotifier {
             candidateName: _currentInterview!.candidateName,
             candidateEmail: effectiveEmail,
             candidatePhone: _currentCandidatePhone,
-            driveFolderId:
-                _currentInterview!.driveFolderId, // 🟢 FIX: Pass the ID!
+            driveFolderId: _currentInterview!.driveFolderId,
           );
           debugPrint('☁️ Queued recording for upload: $voiceRecordingPath');
         } catch (e) {
@@ -643,37 +675,6 @@ class InterviewSessionManager extends ChangeNotifier {
       CacheManager.remove(_sessionQuestionsKey);
     } catch (e) {
       debugPrint('❌ Error clearing session cache: $e');
-    }
-  }
-
-  /// Parse role string to Role enum for Icon/UI purposes only.
-  /// Does NOT affect the stored roleName.
-  Role _parseRole(String roleString) {
-    final normalized = roleString.toLowerCase().trim();
-    if (normalized.contains('flutter')) return Role.flutter;
-    if (normalized.contains('backend')) return Role.backend;
-    if (normalized.contains('frontend')) return Role.frontend;
-    if (normalized.contains('full stack') || normalized.contains('fullstack')) {
-      return Role.fullStack;
-    }
-    if (normalized.contains('mobile')) return Role.mobile;
-
-    // Structural fallback for Icons, but the actual data is preserved in roleName
-    return Role.flutter;
-  }
-
-  /// Parse level string to Level enum with validation
-  Level _parseLevel(String levelString) {
-    switch (levelString.toLowerCase().trim()) {
-      case 'intern':
-        return Level.intern;
-      case 'associate':
-        return Level.associate;
-      case 'senior':
-        return Level.senior;
-      default:
-        debugPrint('⚠️ Unknown level: $levelString, defaulting to Associate');
-        return Level.associate;
     }
   }
 

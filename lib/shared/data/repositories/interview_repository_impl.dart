@@ -416,7 +416,7 @@ class InterviewRepositoryImpl implements InterviewRepository {
   }
 
   @override
-  Future<List<Interview>> getInterviewsByLevel(Level level) async {
+  Future<List<Interview>> getInterviewsByLevel(ExperienceLevel level) async {
     final allInterviews = await getAllInterviews();
     return allInterviews
         .where((interview) => interview.level == level)
@@ -492,9 +492,9 @@ class InterviewRepositoryImpl implements InterviewRepository {
   }
 
   @override
-  Future<Map<Level, double>> getAveragePerformanceByLevel() async {
+  Future<Map<ExperienceLevel, double>> getAveragePerformanceByLevel() async {
     final allInterviews = await getAllInterviews();
-    final levelPerformance = <Level, List<double>>{};
+    final levelPerformance = <ExperienceLevel, List<double>>{};
 
     for (final interview in allInterviews) {
       if (interview.overallScore != null) {
@@ -503,7 +503,7 @@ class InterviewRepositoryImpl implements InterviewRepository {
       }
     }
 
-    final averages = <Level, double>{};
+    final averages = <ExperienceLevel, double>{};
     for (final entry in levelPerformance.entries) {
       final scores = entry.value;
       if (scores.isNotEmpty) {

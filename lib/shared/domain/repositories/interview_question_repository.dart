@@ -33,6 +33,7 @@ abstract class InterviewQuestionRepository {
     String? category,
     String? difficulty,
     String? roleSpecific,
+    String? experienceLevel,
   });
 
   /// Create a new question

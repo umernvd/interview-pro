@@ -8,8 +8,6 @@ import '../../../../core/utils/app_router.dart';
 import '../../../../core/theme/app_theme_extensions.dart';
 import '../../../../core/services/service_locator.dart';
 import '../../../../core/services/interview_session_manager.dart';
-import '../../../../core/services/interview_media_upload_service.dart';
-import '../../../../core/providers/auth_state_provider.dart';
 import '../../../../shared/domain/entities/interview_question.dart';
 import '../providers/interview_question_provider.dart';
 import '../providers/voice_recording_provider.dart';
@@ -20,6 +18,8 @@ import '../widgets/back_navigation_dialog.dart';
 class InterviewQuestionPage extends StatefulWidget {
   final String selectedRole;
   final String selectedLevel;
+  final String selectedRoleName;
+  final String selectedLevelName;
   final String candidateName;
   final String? candidateEmail;
   final String? candidatePhone;
@@ -31,6 +31,8 @@ class InterviewQuestionPage extends StatefulWidget {
     super.key,
     required this.selectedRole,
     required this.selectedLevel,
+    required this.selectedRoleName,
+    required this.selectedLevelName,
     required this.candidateName,
     this.candidateEmail,
     this.candidatePhone,
@@ -59,32 +61,50 @@ class _InterviewQuestionPageState extends State<InterviewQuestionPage>
 
   // Interview session manager
   late final InterviewSessionManager _sessionManager;
-  late final AuthStateProvider _authStateProvider;
   bool _sessionStarted = false;
 
   @override
   void initState() {
     super.initState();
+    debugPrint(
+      '🔍 INIT STATE - Page initialized with selectedRole: ${widget.selectedRole}, selectedLevel: ${widget.selectedLevel}',
+    );
     _sessionManager = sl<InterviewSessionManager>();
-    _authStateProvider = sl<AuthStateProvider>();
     _loadQuestions();
   }
 
   /// Load questions based on selected role and experience level
   Future<void> _loadQuestions() async {
+    debugPrint('🔍 _loadQuestions() CALLED');
     try {
+      debugPrint('🔍 Inside try block - about to setState');
       setState(() {
         _isLoading = true;
         _error = null;
       });
+      debugPrint('🔍 setState completed');
 
       final provider = context.read<InterviewQuestionProvider>();
+      debugPrint('🔍 Provider read successfully');
 
-      // Load questions filtered by role and difficulty level
+      debugPrint(
+        '🔍 Loading questions with role: ${widget.selectedRole}, level: ${widget.selectedLevel}',
+      );
+
+      // 🔍 PAGE BOUNDARY DIAGNOSTIC
+      debugPrint(
+        '🔍 PAGE BOUNDARY - roleSpecific: "${widget.selectedRole}" (type: ${widget.selectedRole.runtimeType}, isEmpty: ${widget.selectedRole.isEmpty}), experienceLevel: "${widget.selectedLevel}" (type: ${widget.selectedLevel.runtimeType}, isEmpty: ${widget.selectedLevel.isEmpty})',
+      );
+
+      debugPrint('🔍 About to call getRandomQuestions...');
+      // Load questions filtered by role and experience level
       final questions = await provider.getRandomQuestions(
         count: 25, // Get 25 questions for the interview
         roleSpecific: widget.selectedRole,
         difficulty: _mapExperienceLevelToDifficulty(widget.selectedLevel),
+      );
+      debugPrint(
+        '🔍 getRandomQuestions returned ${questions.length} questions',
       );
 
       if (mounted) {
@@ -119,13 +139,18 @@ class _InterviewQuestionPageState extends State<InterviewQuestionPage>
 
       // Start interview session after questions are loaded
       await _startInterviewSession();
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (mounted) {
         setState(() {
           _error = 'Failed to load questions: $e';
           _isLoading = false;
         });
       }
+      debugPrint('❌ ERROR CAUGHT IN _loadQuestions: $e');
+      debugPrint(
+        '📋 Role: ${widget.selectedRole}, Level: ${widget.selectedLevel}',
+      );
+      debugPrint('📋 Stack trace: $stackTrace');
     }
   }
 
@@ -138,9 +163,12 @@ class _InterviewQuestionPageState extends State<InterviewQuestionPage>
         candidatePhone: widget.candidatePhone,
         candidateCvId: widget.candidateCvId,
         candidateCvUrl: widget.candidateCvUrl,
-        driveFolderId: widget.driveFolderId, // 🟢 Passed from widget
-        role: widget.selectedRole,
-        level: widget.selectedLevel,
+        cvFilePath: widget.candidateCvUrl,
+        driveFolderId: widget.driveFolderId,
+        roleString: widget.selectedRole,
+        roleNameString: widget.selectedRoleName,
+        levelString: widget.selectedLevel,
+        levelNameString: widget.selectedLevelName,
         questions: _questions,
       );
 
@@ -1027,94 +1055,34 @@ class _InterviewQuestionPageState extends State<InterviewQuestionPage>
 
       final recordingDuration = recordingProvider.recordingDurationSeconds;
 
-      // Complete interview in manager and capture the returned interview data
+      // Complete interview in manager (which handles upload internally)
       final completedInterview = await _sessionManager.completeInterview(
         voiceRecordingPath: recordingPath,
         voiceRecordingDurationSeconds: recordingDuration,
       );
       if (!mounted) return;
 
-      // Update interview with recording details if available
       debugPrint('📽️ Recording saved at: $recordingPath');
       debugPrint('✅ Interview completed: ${completedInterview.id}');
 
       if (mounted) {
         Navigator.pop(context); // Remove loading
 
-        // Show non-dismissible upload overlay
+        // Show success feedback
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Interview Completed Successfully ✅'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        // Navigate to candidate evaluation page with LOCAL interviewId (not backend ID)
+        // The local ID is what's stored in the repository
         if (mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            barrierColor: Colors.black.withOpacity(0.3),
-            builder: (context) => const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
+          context.go(
+            '${AppRouter.candidateEvaluation}?candidateName=${Uri.encodeComponent(completedInterview.candidateName)}&candidateEmail=${Uri.encodeComponent(widget.candidateEmail ?? '')}&role=${Uri.encodeComponent(completedInterview.roleName)}&level=${Uri.encodeComponent(completedInterview.level.title)}&interviewId=${Uri.encodeComponent(completedInterview.id)}',
           );
-        }
-
-        // Upload media file to Next.js backend
-        try {
-          final mediaUploadService = sl<InterviewMediaUploadService>();
-
-          final uploadResponse = await mediaUploadService.uploadInterviewMedia(
-            mediaFilePath: recordingPath ?? '',
-            candidateName: completedInterview.candidateName,
-            roleName: completedInterview.roleName,
-            companyId: _authStateProvider.companyId,
-          );
-
-          if (!mounted) return;
-
-          // Close upload overlay
-          Navigator.pop(context);
-
-          debugPrint('✅ Media upload successful');
-          debugPrint('🔗 Drive File URL: ${uploadResponse['driveFileUrl']}');
-
-          // Get interviewId from backend response (backend is source of truth)
-          final backendInterviewId = uploadResponse['interviewId'] as String?;
-          if (backendInterviewId == null) {
-            throw Exception('Backend did not return interviewId');
-          }
-
-          // Show success feedback
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Interview Uploaded Successfully ✅'),
-                backgroundColor: Colors.green,
-                duration: Duration(seconds: 2),
-              ),
-            );
-          }
-
-          // Navigate to candidate evaluation page with backend-generated interviewId
-          if (mounted) {
-            context.go(
-              '${AppRouter.candidateEvaluation}?candidateName=${Uri.encodeComponent(completedInterview.candidateName)}&candidateEmail=${Uri.encodeComponent(widget.candidateEmail ?? '')}&role=${Uri.encodeComponent(completedInterview.roleName)}&level=${Uri.encodeComponent(completedInterview.level.name)}&interviewId=${Uri.encodeComponent(backendInterviewId)}',
-            );
-          }
-        } catch (uploadError) {
-          if (!mounted) return;
-
-          // Close upload overlay
-          Navigator.pop(context);
-
-          debugPrint('❌ Media upload failed: $uploadError');
-
-          // CRITICAL: DO NOT navigate on upload failure
-          // Show error and allow user to retry
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Upload failed: $uploadError. Please try again.'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 5),
-            ),
-          );
-
-          // Stay on current screen - user can retry "Complete Interview"
-          // The media file is still available for retry
         }
       }
     } catch (e) {

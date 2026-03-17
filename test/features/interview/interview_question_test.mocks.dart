@@ -81,7 +81,7 @@ class MockInterviewQuestionRepository extends _i1.Mock
     String? difficulty,
     String? roleSpecific,
     List<String>? tags,
-    int? limit = 100,
+    int limit = 100,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -136,7 +136,7 @@ class MockInterviewQuestionRepository extends _i1.Mock
 
   @override
   _i5.Future<List<_i2.InterviewQuestion>> getRandomQuestions({
-    required int? count,
+    required int count,
     String? category,
     String? difficulty,
     String? roleSpecific,

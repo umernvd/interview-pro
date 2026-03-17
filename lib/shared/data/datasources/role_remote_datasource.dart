@@ -2,14 +2,16 @@ import 'package:appwrite/appwrite.dart';
 import '../../../core/config/appwrite_config.dart';
 import '../../../core/services/appwrite_service.dart';
 import '../../../core/providers/auth_state_provider.dart';
-import '../models/role_model.dart';
 
 /// Abstract remote datasource for Role operations
 abstract class RoleRemoteDatasource {
-  Future<List<RoleModel>> getRoles();
-  Future<RoleModel?> getRoleById(String id);
-  Future<RoleModel> createRole(RoleModel role);
-  Future<RoleModel> updateRole(RoleModel role);
+  Future<List<Map<String, dynamic>>> getRolesAsJson();
+  Future<Map<String, dynamic>?> getRoleByIdAsJson(String id);
+  Future<Map<String, dynamic>> createRoleAsJson(Map<String, dynamic> data);
+  Future<Map<String, dynamic>> updateRoleAsJson(
+    String id,
+    Map<String, dynamic> data,
+  );
   Future<void> deleteRole(String id);
   Future<bool> hasRoles();
 }
@@ -23,7 +25,7 @@ class RoleRemoteDatasourceImpl implements RoleRemoteDatasource {
 
   @override
   /// Get all active roles from Appwrite with tenant isolation
-  Future<List<RoleModel>> getRoles() async {
+  Future<List<Map<String, dynamic>>> getRolesAsJson() async {
     try {
       // Validate auth state for tenant isolation
       final companyId = _authStateProvider.companyId;
@@ -41,9 +43,13 @@ class RoleRemoteDatasourceImpl implements RoleRemoteDatasource {
         ],
       );
 
-      return response.documents
-          .map((doc) => RoleModel.fromDocument(doc.data))
-          .toList();
+      // CRITICAL: Merge doc.$id into the data map so the entity can extract it
+      return response.documents.map((doc) {
+        return {
+          ...doc.data,
+          r'$id': doc.$id, // Explicitly include the Appwrite document ID
+        };
+      }).toList();
     } catch (e) {
       throw Exception('Failed to fetch roles: $e');
     }
@@ -51,7 +57,7 @@ class RoleRemoteDatasourceImpl implements RoleRemoteDatasource {
 
   @override
   /// Get role by ID from Appwrite
-  Future<RoleModel?> getRoleById(String id) async {
+  Future<Map<String, dynamic>?> getRoleByIdAsJson(String id) async {
     try {
       final response = await _appwriteService.databases.getDocument(
         databaseId: AppwriteConfig.databaseId,
@@ -59,7 +65,8 @@ class RoleRemoteDatasourceImpl implements RoleRemoteDatasource {
         documentId: id,
       );
 
-      return RoleModel.fromDocument(response.data);
+      // CRITICAL: Merge doc.$id into the data map
+      return {...response.data, r'$id': response.$id};
     } catch (e) {
       if (e is AppwriteException && e.code == 404) {
         return null;
@@ -70,16 +77,18 @@ class RoleRemoteDatasourceImpl implements RoleRemoteDatasource {
 
   @override
   /// Create a new role in Appwrite
-  Future<RoleModel> createRole(RoleModel role) async {
+  Future<Map<String, dynamic>> createRoleAsJson(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _appwriteService.databases.createDocument(
         databaseId: AppwriteConfig.databaseId,
         collectionId: AppwriteConfig.rolesCollectionId,
         documentId: ID.unique(),
-        data: role.toDocument(),
+        data: data,
       );
 
-      return RoleModel.fromDocument(response.data);
+      return response.data;
     } catch (e) {
       throw Exception('Failed to create role: $e');
     }
@@ -87,16 +96,19 @@ class RoleRemoteDatasourceImpl implements RoleRemoteDatasource {
 
   @override
   /// Update existing role in Appwrite
-  Future<RoleModel> updateRole(RoleModel role) async {
+  Future<Map<String, dynamic>> updateRoleAsJson(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _appwriteService.databases.updateDocument(
         databaseId: AppwriteConfig.databaseId,
         collectionId: AppwriteConfig.rolesCollectionId,
-        documentId: role.id,
-        data: role.toDocument(),
+        documentId: id,
+        data: data,
       );
 
-      return RoleModel.fromDocument(response.data);
+      return response.data;
     } catch (e) {
       throw Exception('Failed to update role: $e');
     }

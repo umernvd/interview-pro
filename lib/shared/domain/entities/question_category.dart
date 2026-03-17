@@ -83,7 +83,7 @@ class QuestionCategoryEntity extends Equatable {
   /// Creates from JSON (from Appwrite)
   factory QuestionCategoryEntity.fromJson(Map<String, dynamic> json) {
     return QuestionCategoryEntity(
-      id: json['id'] ?? json['\$id'] ?? '',
+      id: json[r'$id'] ?? json['id'] ?? '',
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       questionCount: json['questionCount'] ?? 0,

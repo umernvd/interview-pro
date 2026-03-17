@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'enums.dart';
 import 'question_response.dart';
+import 'role.dart';
+import 'experience_level.dart';
 
 /// Core Interview entity representing a complete interview session
 class Interview extends Equatable {
@@ -10,14 +12,14 @@ class Interview extends Equatable {
   /// Name of the candidate being interviewed
   final String candidateName;
 
-  /// Role the candidate is applying for
+  /// Role the candidate is applying for (dynamic entity)
   final Role role;
 
   /// The specific name of the role (supports custom roles)
   final String roleName;
 
-  /// Experience level of the candidate
-  final Level level;
+  /// Experience level of the candidate (dynamic entity)
+  final ExperienceLevel level;
 
   /// When the interview started
   final DateTime startTime;
@@ -118,7 +120,7 @@ class Interview extends Equatable {
     String? candidateName,
     Role? role,
     String? roleName,
-    Level? level,
+    ExperienceLevel? level,
     DateTime? startTime,
     DateTime? endTime,
     DateTime? lastModified,
@@ -256,7 +258,7 @@ class Interview extends Equatable {
   /// Creates an Interview from JSON data
   factory Interview.fromJson(Map<String, dynamic> json) {
     return Interview(
-      id: json['id'] ?? '',
+      id: json[r'$id'] ?? json['id'] ?? '',
       candidateName: json['candidateName'] ?? '',
       role: _parseRole(json['role']),
       roleName:
@@ -308,9 +310,19 @@ class Interview extends Equatable {
     return {
       'id': id,
       'candidateName': candidateName,
-      'role': role.toString(),
+      'role': {
+        'id': role.id,
+        'name': role.name,
+        'icon': role.icon,
+        'description': role.description,
+      },
       'roleName': roleName,
-      'level': level.toString(),
+      'level': {
+        'id': level.id,
+        'title': level.title,
+        'description': level.description,
+        'sortOrder': level.sortOrder,
+      },
       'startTime': startTime.toIso8601String(),
       'endTime': endTime?.toIso8601String(),
       'lastModified': lastModified.toIso8601String(),
@@ -336,32 +348,82 @@ class Interview extends Equatable {
     };
   }
 
-  /// Helper method to parse Role from string
+  /// Helper method to parse Role from string or map
   static Role _parseRole(dynamic roleValue) {
-    if (roleValue == null) return Role.flutter;
-
-    final roleStr = roleValue.toString().toLowerCase();
-    for (final role in Role.values) {
-      if (role.toString().toLowerCase().contains(roleStr) ||
-          roleStr.contains(role.toString().toLowerCase())) {
-        return role;
-      }
+    if (roleValue == null) {
+      return Role(
+        id: 'default_role',
+        name: 'Unknown Role',
+        icon: 'work',
+        description: '',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
     }
-    return Role.flutter; // Default fallback
+
+    // If it's already a Role entity, return it
+    if (roleValue is Role) return roleValue;
+
+    // If it's a map, parse it as JSON
+    if (roleValue is Map<String, dynamic>) {
+      return Role(
+        id: roleValue['id'] ?? roleValue[r'$id'] ?? 'unknown',
+        name: roleValue['name'] ?? 'Unknown Role',
+        icon: roleValue['icon'] ?? 'work',
+        description: roleValue['description'] ?? '',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+    }
+
+    // Legacy string fallback: store the raw string as id, name unknown
+    return Role(
+      id: roleValue.toString(),
+      name: 'Unknown Role',
+      icon: 'work',
+      description: '',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
   }
 
-  /// Helper method to parse Level from string
-  static Level _parseLevel(dynamic levelValue) {
-    if (levelValue == null) return Level.associate;
-
-    final levelStr = levelValue.toString().toLowerCase();
-    for (final level in Level.values) {
-      if (level.toString().toLowerCase().contains(levelStr) ||
-          levelStr.contains(level.toString().toLowerCase())) {
-        return level;
-      }
+  /// Helper method to parse ExperienceLevel from string or map
+  static ExperienceLevel _parseLevel(dynamic levelValue) {
+    if (levelValue == null) {
+      return ExperienceLevel(
+        id: 'default_level',
+        title: 'Unknown Level',
+        description: '',
+        sortOrder: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
     }
-    return Level.associate; // Default fallback
+
+    // If it's already an ExperienceLevel entity, return it
+    if (levelValue is ExperienceLevel) return levelValue;
+
+    // If it's a map, parse it as JSON
+    if (levelValue is Map<String, dynamic>) {
+      return ExperienceLevel(
+        id: levelValue['id'] ?? levelValue[r'$id'] ?? 'unknown',
+        title: levelValue['title'] ?? 'Unknown Level',
+        description: levelValue['description'] ?? '',
+        sortOrder: levelValue['sortOrder'] ?? 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+    }
+
+    // Legacy string fallback
+    return ExperienceLevel(
+      id: levelValue.toString(),
+      title: 'Unknown Level',
+      description: '',
+      sortOrder: 0,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
   }
 
   /// Helper method to parse InterviewStatus from string

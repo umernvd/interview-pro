@@ -41,77 +41,62 @@ class RoleProvider extends ChangeNotifier {
       return;
     }
 
-    // Always start with fallback roles for immediate UI response
-    _createFallbackRoles();
-
-    // Then try to load from backend in the background
+    // Load from backend - no fallback allowed
     if (AppwriteConfig.isConfigured) {
-      _loadFromBackendInBackground();
+      await _loadFromBackend();
     } else {
-      debugPrint('⚠️ Appwrite not configured, using fallback roles only');
+      _error = 'Appwrite not configured';
+      debugPrint('❌ Appwrite not configured');
     }
 
     _setLoading(false);
   }
 
-  /// Load roles from backend in background without blocking UI
-  Future<void> _loadFromBackendInBackground() async {
-    try {
-      debugPrint('🔧 Attempting to connect to Appwrite in background...');
-      debugPrint('Project ID: ${AppwriteConfig.projectId}');
-      debugPrint('Endpoint: ${AppwriteConfig.endpoint}');
-
-      // Set a timeout for network operations
-      await _loadFromBackend().timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          debugPrint('⏰ Background connection timeout, keeping fallback roles');
-        },
-      );
-    } catch (e) {
-      debugPrint('❌ Background loading failed: $e');
-      debugPrint('🔄 Keeping fallback roles');
-    }
-  }
-
   /// Load roles from backend with proper error handling
   Future<void> _loadFromBackend() async {
-    await RetryHelper.withRetry(
-      () async {
-        // Check if roles exist in backend
-        final hasRoles = await _roleRepository.hasRoles();
+    try {
+      await RetryHelper.withRetry(
+        () async {
+          // Check if roles exist in backend
+          final hasRoles = await _roleRepository.hasRoles();
 
-        if (!hasRoles) {
-          debugPrint('📝 No roles found, creating default roles...');
-          // Create default roles if none exist
-          await _createDefaultRoles();
-        }
+          if (!hasRoles) {
+            debugPrint('📝 No roles found, creating default roles...');
+            // Create default roles if none exist
+            await _createDefaultRoles();
+          }
 
-        // Fetch roles from backend
-        debugPrint('📥 Fetching roles from backend...');
-        final backendRoles = await _roleRepository.getRoles();
+          // Fetch roles from backend
+          debugPrint('📥 Fetching roles from backend...');
+          final backendRoles = await _roleRepository.getRoles();
 
-        if (backendRoles.isNotEmpty) {
-          debugPrint(
-            '✅ Successfully loaded ${backendRoles.length} roles from backend',
-          );
-          _roles = backendRoles;
+          if (backendRoles.isNotEmpty) {
+            debugPrint(
+              '✅ Successfully loaded ${backendRoles.length} roles from backend',
+            );
+            _roles = backendRoles;
 
-          // Cache the roles
-          CacheManager.set(
-            CacheManager.rolesKey,
-            backendRoles,
-            CacheManager.rolesTTL,
-          );
+            // Cache the roles
+            CacheManager.set(
+              CacheManager.rolesKey,
+              backendRoles,
+              CacheManager.rolesTTL,
+            );
 
-          notifyListeners(); // Update UI with backend data
-        } else {
-          debugPrint('⚠️ No roles returned from backend, keeping fallback');
-        }
-      },
-      config: RetryHelper.networkConfig,
-      shouldRetry: RetryHelper.isRetryableError,
-    );
+            notifyListeners(); // Update UI with backend data
+          } else {
+            _error = 'No roles returned from backend';
+            debugPrint('❌ No roles returned from backend');
+          }
+        },
+        config: RetryHelper.networkConfig,
+        shouldRetry: RetryHelper.isRetryableError,
+      );
+    } catch (e) {
+      _error = 'Failed to load roles: $e';
+      debugPrint('❌ Error loading roles: $e');
+      rethrow;
+    }
   }
 
   /// Select a role by ID
@@ -190,60 +175,6 @@ class RoleProvider extends ChangeNotifier {
         debugPrint('Failed to create role ${role.name}: $e');
       }
     }
-  }
-
-  /// Create fallback roles when backend is unavailable
-  void _createFallbackRoles() {
-    _roles = [
-      Role(
-        id: 'flutter_dev',
-        name: 'Flutter Developer',
-        icon: 'flutter',
-        description: 'Mobile app development with Flutter framework',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Role(
-        id: 'ui_ux_designer',
-        name: 'UI/UX Designer',
-        icon: 'design_services',
-        description: 'User interface and experience design',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Role(
-        id: 'product_manager',
-        name: 'Product Manager',
-        icon: 'business_center',
-        description: 'Product strategy and management',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Role(
-        id: 'backend_engineer',
-        name: 'Backend Engineer',
-        icon: 'storage',
-        description: 'Server-side development and APIs',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Role(
-        id: 'qa_engineer',
-        name: 'QA Engineer',
-        icon: 'bug_report',
-        description: 'Quality assurance and testing',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Role(
-        id: 'hr_specialist',
-        name: 'HR Specialist',
-        icon: 'people',
-        description: 'Human resources and talent management',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    ];
   }
 
   /// Set loading state

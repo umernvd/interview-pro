@@ -17,8 +17,22 @@ void main() {
         final interview = Interview(
           id: 'test_fallback_001',
           candidateName: 'Test Candidate',
-          role: Role.flutter,
-          level: Level.associate,
+          role: Role(
+            id: 'flutter_dev',
+            name: 'Flutter Developer',
+            icon: 'flutter',
+            description: 'Flutter Developer',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+          level: ExperienceLevel(
+            id: 'associate',
+            title: 'Associate',
+            description: 'Associate Level',
+            sortOrder: 1,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
           startTime: DateTime.now(),
           lastModified: DateTime.now(),
           responses: [],
@@ -34,7 +48,7 @@ void main() {
         );
         expect(retrievedInterview, isNotNull);
         expect(retrievedInterview!.candidateName, equals('Test Candidate'));
-        expect(retrievedInterview.role, equals(Role.flutter));
+        expect(retrievedInterview.role.name, equals('Flutter Developer'));
 
         // Verify it appears in all interviews list
         final allInterviews = await repository.getAllInterviews();
@@ -49,8 +63,22 @@ void main() {
         Interview(
           id: 'test_001',
           candidateName: 'Candidate 1',
-          role: Role.flutter,
-          level: Level.intern,
+          role: Role(
+            id: 'flutter_dev',
+            name: 'Flutter Developer',
+            icon: 'flutter',
+            description: 'Flutter Developer',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+          level: ExperienceLevel(
+            id: 'intern',
+            title: 'Intern',
+            description: 'Intern Level',
+            sortOrder: 0,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
           startTime: DateTime.now(),
           lastModified: DateTime.now(),
           responses: [],
@@ -59,8 +87,22 @@ void main() {
         Interview(
           id: 'test_002',
           candidateName: 'Candidate 2',
-          role: Role.backend,
-          level: Level.senior,
+          role: Role(
+            id: 'backend_dev',
+            name: 'Backend Developer',
+            icon: 'backend',
+            description: 'Backend Developer',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+          level: ExperienceLevel(
+            id: 'senior',
+            title: 'Senior',
+            description: 'Senior Level',
+            sortOrder: 2,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
           startTime: DateTime.now(),
           lastModified: DateTime.now(),
           responses: [],
@@ -90,8 +132,22 @@ void main() {
       final interview = Interview(
         id: 'test_update_001',
         candidateName: 'Initial Name',
-        role: Role.flutter,
-        level: Level.associate,
+        role: Role(
+          id: 'flutter_dev',
+          name: 'Flutter Developer',
+          icon: 'flutter',
+          description: 'Flutter Developer',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        level: ExperienceLevel(
+          id: 'associate',
+          title: 'Associate',
+          description: 'Associate Level',
+          sortOrder: 1,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
         startTime: DateTime.now(),
         lastModified: DateTime.now(),
         responses: [],

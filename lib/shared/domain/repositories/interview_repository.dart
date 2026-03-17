@@ -24,7 +24,7 @@ abstract class InterviewRepository {
   Future<List<Interview>> getInterviewsByRole(Role role);
 
   /// Get interviews by level
-  Future<List<Interview>> getInterviewsByLevel(Level level);
+  Future<List<Interview>> getInterviewsByLevel(ExperienceLevel level);
 
   /// Get recent interviews
   Future<List<Interview>> getRecentInterviews({int limit = 10});
@@ -53,7 +53,7 @@ abstract class InterviewRepository {
   Future<Map<Role, double>> getAveragePerformanceByRole();
 
   /// Get average performance by level
-  Future<Map<Level, double>> getAveragePerformanceByLevel();
+  Future<Map<ExperienceLevel, double>> getAveragePerformanceByLevel();
 
   /// Get interview statistics
   Future<Map<String, dynamic>> getInterviewStatistics();

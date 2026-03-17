@@ -402,8 +402,11 @@ class _InterviewSetupPageState extends State<InterviewSetupPage> {
 
     final selectedRole = roleProvider.selectedRole!;
 
-    // Navigate to experience level selection
-    context.push('${AppRouter.experienceLevel}?role=${selectedRole.name}');
+    // Navigate to experience level selection with role ID and name
+    final encodedRoleName = Uri.encodeComponent(selectedRole.name);
+    context.push(
+      '${AppRouter.experienceLevel}?role=${selectedRole.id}&roleName=$encodedRoleName',
+    );
   }
 
   /// Map icon string to IconData

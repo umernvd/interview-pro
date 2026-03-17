@@ -21,13 +21,13 @@ class InterviewerModel {
   /// Create InterviewerModel from Appwrite document
   factory InterviewerModel.fromDocument(Map<String, dynamic> document) {
     return InterviewerModel(
-      id: document['\$id'] as String,
+      id: document[r'$id'] as String,
       email: document['email'] as String,
       authCode: document['authCode'] as String,
       userId: document['userId'] as String?,
       companyId: document['companyId'] as String,
-      createdAt: DateTime.parse(document['\$createdAt'] as String),
-      updatedAt: DateTime.parse(document['\$updatedAt'] as String),
+      createdAt: DateTime.parse(document[r'$createdAt'] as String),
+      updatedAt: DateTime.parse(document[r'$updatedAt'] as String),
     );
   }
 

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_router.dart';
 import '../../../../shared/domain/entities/experience_level.dart';
+import '../../../../shared/domain/entities/role.dart';
 import '../providers/experience_level_provider.dart';
 import '../../../../core/services/service_locator.dart';
 import 'dart:io';
@@ -17,8 +18,13 @@ import '../providers/interview_setup_provider.dart';
 /// Experience level selection screen with Appwrite backend integration
 class ExperienceLevelPage extends StatefulWidget {
   final String selectedRole;
+  final String selectedRoleName;
 
-  const ExperienceLevelPage({super.key, required this.selectedRole});
+  const ExperienceLevelPage({
+    super.key,
+    required this.selectedRole,
+    required this.selectedRoleName,
+  });
 
   @override
   State<ExperienceLevelPage> createState() => _ExperienceLevelPageState();
@@ -121,7 +127,7 @@ class _ExperienceLevelPageState extends State<ExperienceLevelPage> {
           ),
           const SizedBox(height: 4),
           Text(
-            'For ${widget.selectedRole} position',
+            'For ${widget.selectedRoleName} position',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.normal,
@@ -639,6 +645,53 @@ class _ExperienceLevelPageState extends State<ExperienceLevelPage> {
                                   }
                                 }
 
+                                // Get selected level early for use in error messages
+                                final levels =
+                                    _experienceLevelProvider.experienceLevels;
+                                final selectedLevel =
+                                    levels[selectedLevelIndex!];
+                                final selectedLevelId = selectedLevel.id;
+
+                                // Check if questions are available for this role/level combination
+                                final setupProvider = context
+                                    .read<InterviewSetupProvider>();
+
+                                // SET the role and level in the provider BEFORE checking question count
+                                await setupProvider.setSelectedRole(
+                                  Role(
+                                    id: widget.selectedRole,
+                                    name: widget.selectedRoleName,
+                                    icon: '',
+                                    description: '',
+                                    createdAt: DateTime.now(),
+                                    updatedAt: DateTime.now(),
+                                  ),
+                                );
+                                await setupProvider.setSelectedLevel(
+                                  selectedLevel,
+                                );
+
+                                final questionCount = await setupProvider
+                                    .getQuestionCount();
+
+                                if (questionCount == 0) {
+                                  if (context.mounted) {
+                                    debugPrint(
+                                      '⚠️ No questions available for role: ${widget.selectedRole}, level: $selectedLevelId',
+                                    );
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: const Text(
+                                          'No questions available for this role and level combination. Please select a different option or contact your company admin.',
+                                        ),
+                                        backgroundColor: Colors.orange[700],
+                                        duration: const Duration(seconds: 5),
+                                      ),
+                                    );
+                                  }
+                                  return;
+                                }
+
                                 // Capture values before reset
                                 final cvFileId = cvProvider.cvFileId;
                                 final cvFileUrl = cvProvider.cvUrl;
@@ -650,19 +703,16 @@ class _ExperienceLevelPageState extends State<ExperienceLevelPage> {
                                   Navigator.pop(context);
                                 }
 
-                                final levels =
-                                    _experienceLevelProvider.experienceLevels;
-                                final selectedLevelName =
-                                    levels[selectedLevelIndex!].title;
-
-                                // Use Uri to properly encode query parameters
+                                // Build query parameters
                                 final Map<String, dynamic> queryParams = {
                                   'role': widget.selectedRole,
-                                  'level': selectedLevelName,
+                                  'roleName': widget.selectedRoleName,
+                                  'level': selectedLevelId,
+                                  'levelName': selectedLevel.title,
                                   'candidateName': candidateName,
                                   'candidateEmail': candidateEmail,
                                   'candidatePhone': candidatePhone,
-                                  'driveFolderId': driveFolderId, // PASS THE ID
+                                  'driveFolderId': driveFolderId,
                                 };
 
                                 if (cvFileId != null) {

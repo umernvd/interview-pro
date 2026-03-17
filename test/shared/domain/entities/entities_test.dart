@@ -3,21 +3,111 @@ import 'package:interview_pro_app/shared/domain/entities/entities.dart';
 
 void main() {
   group('Core Entities Tests', () {
-    group('Enums', () {
-      test('Role enum should have correct display names', () {
-        expect(Role.flutter.displayName, 'Flutter Developer');
-        expect(Role.backend.displayName, 'Backend Developer');
-        expect(Role.frontend.displayName, 'Frontend Developer');
-        expect(Role.fullStack.displayName, 'Full Stack Developer');
-        expect(Role.mobile.displayName, 'Mobile Developer');
+    group('Role Entity', () {
+      test('should create Role with correct properties', () {
+        final role = Role(
+          id: 'flutter_dev',
+          name: 'Flutter Developer',
+          icon: 'flutter',
+          description: 'Flutter Developer',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        expect(role.id, 'flutter_dev');
+        expect(role.name, 'Flutter Developer');
+        expect(role.icon, 'flutter');
+        expect(role.description, 'Flutter Developer');
       });
 
-      test('Level enum should have correct display names', () {
-        expect(Level.intern.displayName, 'Intern');
-        expect(Level.associate.displayName, 'Associate');
-        expect(Level.senior.displayName, 'Senior');
+      test('should create multiple Role instances', () {
+        final roles = [
+          Role(
+            id: 'flutter_dev',
+            name: 'Flutter Developer',
+            icon: 'flutter',
+            description: 'Flutter Developer',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+          Role(
+            id: 'backend_dev',
+            name: 'Backend Developer',
+            icon: 'backend',
+            description: 'Backend Developer',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+          Role(
+            id: 'frontend_dev',
+            name: 'Frontend Developer',
+            icon: 'frontend',
+            description: 'Frontend Developer',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        ];
+
+        expect(roles.length, 3);
+        expect(roles[0].name, 'Flutter Developer');
+        expect(roles[1].name, 'Backend Developer');
+        expect(roles[2].name, 'Frontend Developer');
+      });
+    });
+
+    group('ExperienceLevel Entity', () {
+      test('should create ExperienceLevel with correct properties', () {
+        final level = ExperienceLevel(
+          id: 'intern',
+          title: 'Intern',
+          description: 'Intern Level',
+          sortOrder: 0,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        expect(level.id, 'intern');
+        expect(level.title, 'Intern');
+        expect(level.description, 'Intern Level');
+        expect(level.sortOrder, 0);
       });
 
+      test('should create multiple ExperienceLevel instances', () {
+        final levels = [
+          ExperienceLevel(
+            id: 'intern',
+            title: 'Intern',
+            description: 'Intern Level',
+            sortOrder: 0,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+          ExperienceLevel(
+            id: 'associate',
+            title: 'Associate',
+            description: 'Associate Level',
+            sortOrder: 1,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+          ExperienceLevel(
+            id: 'senior',
+            title: 'Senior',
+            description: 'Senior Level',
+            sortOrder: 2,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        ];
+
+        expect(levels.length, 3);
+        expect(levels[0].title, 'Intern');
+        expect(levels[1].title, 'Associate');
+        expect(levels[2].title, 'Senior');
+      });
+    });
+
+    group('QuestionCategory enum', () {
       test('QuestionCategory enum should have correct display names', () {
         expect(
           QuestionCategory.programmingFundamentals.displayName,
@@ -33,7 +123,9 @@ void main() {
         );
         expect(QuestionCategory.softSkills.displayName, 'Soft Skills');
       });
+    });
 
+    group('InterviewStatus enum', () {
       test('InterviewStatus enum should have correct display names', () {
         expect(InterviewStatus.notStarted.displayName, 'Not Started');
         expect(InterviewStatus.inProgress.displayName, 'In Progress');
@@ -105,12 +197,28 @@ void main() {
       test('should create Interview with required fields', () {
         final startTime = DateTime.now();
         final responses = <QuestionResponse>[];
+        final role = Role(
+          id: 'flutter_dev',
+          name: 'Flutter Developer',
+          icon: 'flutter',
+          description: 'Flutter Developer',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        final level = ExperienceLevel(
+          id: 'associate',
+          title: 'Associate',
+          description: 'Associate Level',
+          sortOrder: 1,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
 
         final interview = Interview(
           id: 'i1',
           candidateName: 'John Doe',
-          role: Role.flutter,
-          level: Level.associate,
+          role: role,
+          level: level,
           startTime: startTime,
           lastModified: startTime,
           responses: responses,
@@ -119,8 +227,8 @@ void main() {
 
         expect(interview.id, 'i1');
         expect(interview.candidateName, 'John Doe');
-        expect(interview.role, Role.flutter);
-        expect(interview.level, Level.associate);
+        expect(interview.role, role);
+        expect(interview.level, level);
         expect(interview.startTime, startTime);
         expect(interview.endTime, null);
         expect(interview.responses, responses);
@@ -131,12 +239,28 @@ void main() {
       test('should calculate duration correctly', () {
         final startTime = DateTime.now();
         final endTime = startTime.add(const Duration(hours: 1, minutes: 30));
+        final role = Role(
+          id: 'flutter_dev',
+          name: 'Flutter Developer',
+          icon: 'flutter',
+          description: 'Flutter Developer',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        final level = ExperienceLevel(
+          id: 'associate',
+          title: 'Associate',
+          description: 'Associate Level',
+          sortOrder: 1,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
 
         final interview = Interview(
           id: 'i1',
           candidateName: 'John Doe',
-          role: Role.flutter,
-          level: Level.associate,
+          role: role,
+          level: level,
           startTime: startTime,
           endTime: endTime,
           lastModified: endTime,
@@ -148,11 +272,28 @@ void main() {
       });
 
       test('should check status correctly', () {
+        final role = Role(
+          id: 'flutter_dev',
+          name: 'Flutter Developer',
+          icon: 'flutter',
+          description: 'Flutter Developer',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        final level = ExperienceLevel(
+          id: 'associate',
+          title: 'Associate',
+          description: 'Associate Level',
+          sortOrder: 1,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
         final interview = Interview(
           id: 'i1',
           candidateName: 'John Doe',
-          role: Role.flutter,
-          level: Level.associate,
+          role: role,
+          level: level,
           startTime: DateTime.now(),
           lastModified: DateTime.now(),
           responses: [],
@@ -165,11 +306,28 @@ void main() {
 
       test('should support copyWith', () {
         final startTime = DateTime.now();
+        final role = Role(
+          id: 'flutter_dev',
+          name: 'Flutter Developer',
+          icon: 'flutter',
+          description: 'Flutter Developer',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        final level = ExperienceLevel(
+          id: 'associate',
+          title: 'Associate',
+          description: 'Associate Level',
+          sortOrder: 1,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
         final original = Interview(
           id: 'i1',
           candidateName: 'John Doe',
-          role: Role.flutter,
-          level: Level.associate,
+          role: role,
+          level: level,
           startTime: startTime,
           lastModified: startTime,
           responses: [],

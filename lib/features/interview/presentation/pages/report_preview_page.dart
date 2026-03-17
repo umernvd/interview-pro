@@ -246,7 +246,7 @@ class _ReportPreviewPageState extends State<ReportPreviewPage> {
               CandidateInfoBoxWidget(
                 candidateName: reportData?.interview.candidateName ?? 'N/A',
                 role: reportData?.roleName ?? 'N/A',
-                level: reportData?.interview.level.displayName ?? 'N/A',
+                level: reportData?.interview.level.title ?? 'N/A',
                 date: _formatDate(
                   reportData?.interview.startTime ?? DateTime.now(),
                 ),

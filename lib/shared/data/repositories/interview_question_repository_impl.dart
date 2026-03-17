@@ -64,13 +64,27 @@ class InterviewQuestionRepositoryImpl implements InterviewQuestionRepository {
     String? category,
     String? difficulty,
     String? roleSpecific,
+    String? experienceLevel,
   }) async {
-    return await _remoteDatasource.getRandomQuestions(
-      count: count,
-      category: category,
-      difficulty: difficulty,
-      roleSpecific: roleSpecific,
+    debugPrint(
+      '🔍 REPOSITORY - getRandomQuestions called with roleSpecific: $roleSpecific, experienceLevel: $experienceLevel',
     );
+    try {
+      final questions = await _remoteDatasource.getRandomQuestions(
+        count: count,
+        category: category,
+        difficulty: difficulty,
+        roleSpecific: roleSpecific,
+        experienceLevel: experienceLevel,
+      );
+      debugPrint(
+        '🔍 REPOSITORY - Datasource returned ${questions.length} questions',
+      );
+      return questions;
+    } catch (e) {
+      debugPrint('🚨 REPOSITORY ERROR: $e');
+      rethrow;
+    }
   }
 
   @override

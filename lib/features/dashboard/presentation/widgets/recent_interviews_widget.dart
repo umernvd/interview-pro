@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
 import '../../../../shared/domain/entities/entities.dart';
 import '../../../../shared/presentation/widgets/premium_card.dart';
 import '../providers/dashboard_provider.dart';
@@ -194,29 +193,11 @@ class RecentInterviewsWidget extends StatelessWidget {
   }
 
   String _getRoleDisplayName(Role role) {
-    switch (role) {
-      case Role.flutter:
-        return AppStrings.flutterDeveloper;
-      case Role.backend:
-        return AppStrings.backendDeveloper;
-      case Role.frontend:
-        return AppStrings.frontendDeveloper;
-      case Role.fullStack:
-        return AppStrings.fullStackDeveloper;
-      case Role.mobile:
-        return AppStrings.mobileDeveloper;
-    }
+    return role.name;
   }
 
-  String _getLevelDisplayName(Level level) {
-    switch (level) {
-      case Level.intern:
-        return AppStrings.intern;
-      case Level.associate:
-        return AppStrings.associate;
-      case Level.senior:
-        return AppStrings.senior;
-    }
+  String _getLevelDisplayName(ExperienceLevel level) {
+    return level.title;
   }
 
   String _formatDate(DateTime date) {

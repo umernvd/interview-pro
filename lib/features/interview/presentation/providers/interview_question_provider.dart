@@ -88,23 +88,16 @@ class InterviewQuestionProvider extends BaseProvider<InterviewQuestion> {
   }) async {
     await RetryHelper.withRetry(
       () async {
-        debugPrint('📥 Fetching questions from backend...');
+        debugPrint('📥 Fetching questions from backend via API...');
+        print('✅ PROVIDER SUCCESS: Successfully routed to the Next.js API!');
 
-        // Check if questions exist, if not initialize them
-        final hasQuestions = await _repository.hasQuestions();
-        if (!hasQuestions) {
-          debugPrint(
-            '📝 No questions found, initializing default questions...',
-          );
-          await _repository.initializeDefaultQuestions();
-        }
-
-        // Fetch questions
-        final questions = await _repository.getQuestions(
+        // Use the new API method instead of direct Appwrite query
+        final questions = await _repository.getRandomQuestions(
+          count: 100, // Get up to 100 questions
           category: category,
           difficulty: difficulty,
           roleSpecific: roleSpecific,
-          tags: tags,
+          experienceLevel: null, // Not used in this context
         );
 
         if (questions.isNotEmpty) {
@@ -230,17 +223,27 @@ class InterviewQuestionProvider extends BaseProvider<InterviewQuestion> {
     String? category,
     String? difficulty,
     String? roleSpecific,
+    String? experienceLevel,
   }) async {
     try {
-      return await _repository.getRandomQuestions(
+      debugPrint(
+        '🔍 PROVIDER - Calling repository.getRandomQuestions with roleSpecific: $roleSpecific, experienceLevel: $experienceLevel',
+      );
+      final questions = await _repository.getRandomQuestions(
         count: count,
         category: category,
         difficulty: difficulty,
         roleSpecific: roleSpecific,
+        experienceLevel: experienceLevel,
       );
+      debugPrint(
+        '🔍 PROVIDER - Repository returned ${questions.length} questions',
+      );
+      return questions;
     } catch (e) {
-      debugPrint('❌ Error getting random questions: $e');
-      return [];
+      debugPrint('🚨 PROVIDER ERROR: $e');
+      debugPrint('🚨 PROVIDER ERROR TYPE: ${e.runtimeType}');
+      rethrow; // DO NOT SWALLOW - let the error propagate
     }
   }
 

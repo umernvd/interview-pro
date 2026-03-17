@@ -11,5 +11,4 @@ export 'interview.dart';
 export 'interview_question.dart';
 export 'question_category.dart';
 export 'question_response.dart';
-
-// Note: role.dart is not exported here to avoid conflict with Role enum in enums.dart
+export 'role.dart';

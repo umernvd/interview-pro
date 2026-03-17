@@ -1,7 +1,6 @@
 import '../../domain/entities/role.dart';
 import '../../domain/repositories/role_repository.dart';
 import '../datasources/role_remote_datasource.dart';
-import '../models/role_model.dart';
 
 /// Implementation of RoleRepository using Appwrite
 class RoleRepositoryImpl implements RoleRepository {
@@ -12,8 +11,8 @@ class RoleRepositoryImpl implements RoleRepository {
   @override
   Future<List<Role>> getRoles() async {
     try {
-      final roleModels = await _remoteDatasource.getRoles();
-      return roleModels.map(_mapModelToEntity).toList();
+      final roleDocuments = await _remoteDatasource.getRolesAsJson();
+      return roleDocuments.map((doc) => Role.fromJson(doc)).toList();
     } catch (e) {
       throw Exception('Failed to get roles: $e');
     }
@@ -22,8 +21,8 @@ class RoleRepositoryImpl implements RoleRepository {
   @override
   Future<Role?> getRoleById(String id) async {
     try {
-      final roleModel = await _remoteDatasource.getRoleById(id);
-      return roleModel != null ? _mapModelToEntity(roleModel) : null;
+      final roleDocument = await _remoteDatasource.getRoleByIdAsJson(id);
+      return roleDocument != null ? Role.fromJson(roleDocument) : null;
     } catch (e) {
       throw Exception('Failed to get role by ID: $e');
     }
@@ -32,9 +31,13 @@ class RoleRepositoryImpl implements RoleRepository {
   @override
   Future<Role> createRole(Role role) async {
     try {
-      final roleModel = _mapEntityToModel(role);
-      final createdModel = await _remoteDatasource.createRole(roleModel);
-      return _mapModelToEntity(createdModel);
+      final roleDocument = await _remoteDatasource.createRoleAsJson({
+        'name': role.name,
+        'icon': role.icon,
+        'description': role.description,
+        'isActive': role.isActive,
+      });
+      return Role.fromJson(roleDocument);
     } catch (e) {
       throw Exception('Failed to create role: $e');
     }
@@ -43,9 +46,13 @@ class RoleRepositoryImpl implements RoleRepository {
   @override
   Future<Role> updateRole(Role role) async {
     try {
-      final roleModel = _mapEntityToModel(role);
-      final updatedModel = await _remoteDatasource.updateRole(roleModel);
-      return _mapModelToEntity(updatedModel);
+      final roleDocument = await _remoteDatasource.updateRoleAsJson(role.id, {
+        'name': role.name,
+        'icon': role.icon,
+        'description': role.description,
+        'isActive': role.isActive,
+      });
+      return Role.fromJson(roleDocument);
     } catch (e) {
       throw Exception('Failed to update role: $e');
     }
@@ -67,31 +74,5 @@ class RoleRepositoryImpl implements RoleRepository {
     } catch (e) {
       return false;
     }
-  }
-
-  /// Map RoleModel to Role entity
-  Role _mapModelToEntity(RoleModel model) {
-    return Role(
-      id: model.id,
-      name: model.name,
-      icon: model.icon,
-      description: model.description,
-      isActive: model.isActive,
-      createdAt: model.createdAt,
-      updatedAt: model.updatedAt,
-    );
-  }
-
-  /// Map Role entity to RoleModel
-  RoleModel _mapEntityToModel(Role entity) {
-    return RoleModel(
-      id: entity.id,
-      name: entity.name,
-      icon: entity.icon,
-      description: entity.description,
-      isActive: entity.isActive,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
-    );
   }
 }

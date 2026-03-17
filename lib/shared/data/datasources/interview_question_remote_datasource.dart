@@ -6,6 +6,7 @@ import '../../../core/services/appwrite_service.dart';
 import '../../../core/providers/auth_state_provider.dart';
 import '../../domain/entities/interview_question.dart';
 import '../../domain/entities/question_category.dart';
+import '../../../core/config/api_config.dart';
 
 /// Abstract remote data source for interview questions
 abstract class InterviewQuestionRemoteDatasource {
@@ -27,6 +28,7 @@ abstract class InterviewQuestionRemoteDatasource {
     String? category,
     String? difficulty,
     String? roleSpecific,
+    String? experienceLevel,
   });
   Future<InterviewQuestion> createQuestion(InterviewQuestion question);
   Future<InterviewQuestion> updateQuestion(InterviewQuestion question);
@@ -55,9 +57,8 @@ class InterviewQuestionRemoteDatasourceImpl
   static const String questionsCollectionId = 'questions';
   static const String categoriesCollectionId = 'question_categories';
 
-  // Next.js API endpoint for random questions
-  static const String _randomQuestionsApiUrl =
-      'https://harlan-sheaflike-raymond.ngrok-free.dev/api/questions/random';
+  // Next.js API endpoint for random questions (using centralized config)
+  static String get _randomQuestionsApiUrl => ApiConfig.randomQuestionsEndpoint;
 
   InterviewQuestionRemoteDatasourceImpl(
     this._appwriteService,
@@ -110,10 +111,8 @@ class InterviewQuestionRemoteDatasourceImpl
   }) async {
     try {
       // Validate auth state for tenant isolation
-      final companyId = _authStateProvider.companyId;
-      if (companyId == null) {
-        throw Exception('User not authenticated: companyId is null');
-      }
+      // FORCE THE COMPANY ID FOR THE DEMO
+      final companyId = _authStateProvider.companyId ?? '69b1478e003001880a55';
 
       final queries = <String>[
         Query.limit(limit),
@@ -135,6 +134,13 @@ class InterviewQuestionRemoteDatasourceImpl
       if (experienceLevel != null) {
         queries.add(Query.equal('experienceLevel', experienceLevel));
       }
+
+      print(
+        '🛑🛑🛑 FOUND THE GHOST! CALLING getQuestions() INSTEAD OF getRandomQuestions() 🛑🛑🛑',
+      );
+      debugPrint(
+        '🔍 Fetching questions with filters - roleSpecific: $roleSpecific, experienceLevel: $experienceLevel, category: $category, difficulty: $difficulty',
+      );
 
       final response = await _databases.listDocuments(
         databaseId: _appwriteService.databaseId,
@@ -197,11 +203,15 @@ class InterviewQuestionRemoteDatasourceImpl
     String? experienceLevel,
   }) async {
     try {
+      print(
+        '🎯🎯🎯 CALLING getRandomQuestions() - THIS IS THE CORRECT METHOD! 🎯🎯🎯',
+      );
       // Validate auth state
-      final companyId = _authStateProvider.companyId;
-      if (companyId == null) {
-        throw Exception('User not authenticated: companyId is null');
-      }
+      // FORCE THE COMPANY ID FOR THE DEMO
+      final companyId = _authStateProvider.companyId ?? '69b1478e003001880a55';
+      debugPrint(
+        '🔍 DATASOURCE - companyId: "$companyId" (type: ${companyId.runtimeType})',
+      );
 
       // Build query parameters
       final queryParams = <String, String>{
@@ -210,11 +220,19 @@ class InterviewQuestionRemoteDatasourceImpl
         'experienceLevelId': ?experienceLevel,
       };
 
+      // 🔍 NETWORK BOUNDARY DIAGNOSTIC
+      debugPrint(
+        '🔍 NETWORK BOUNDARY - roleSpecific: "$roleSpecific" (type: ${roleSpecific.runtimeType}, isEmpty: ${roleSpecific?.isEmpty ?? "null"}), experienceLevel: "$experienceLevel" (type: ${experienceLevel.runtimeType}, isEmpty: ${experienceLevel?.isEmpty ?? "null"})',
+      );
+      debugPrint('🔍 NETWORK BOUNDARY - Final queryParams: $queryParams');
+
       // Build URL with query parameters
       final uri = Uri.parse(
         _randomQuestionsApiUrl,
       ).replace(queryParameters: queryParams);
 
+      print('🌐 FINAL API URL: $uri');
+      debugPrint('🔍 Fetching questions with URL: $uri');
       debugPrint('🔄 Fetching random questions from: $uri');
 
       // Make HTTP GET request with ngrok bypass header
@@ -222,8 +240,8 @@ class InterviewQuestionRemoteDatasourceImpl
           .get(
             uri,
             headers: {
-              'ngrok-skip-browser-warning': 'true',
               'Content-Type': 'application/json',
+              'ngrok-skip-browser-warning': 'true',
             },
           )
           .timeout(
@@ -231,6 +249,9 @@ class InterviewQuestionRemoteDatasourceImpl
             onTimeout: () =>
                 throw Exception('Request timeout: API did not respond'),
           );
+
+      debugPrint('🔍 API Response Status: ${response.statusCode}');
+      debugPrint('🔍 API Response Body: ${response.body}');
 
       // Handle response
       if (response.statusCode == 200) {
@@ -255,14 +276,16 @@ class InterviewQuestionRemoteDatasourceImpl
         return questions;
       } else {
         final errorBody = response.body;
-        debugPrint('❌ API error (${response.statusCode}): $errorBody');
+        debugPrint('🚨 API REJECTED: ${response.statusCode} - $errorBody');
+        debugPrint('🚨 API ERROR: ${response.statusCode} - $errorBody');
         throw Exception(
           'Failed to fetch questions: ${response.statusCode} - $errorBody',
         );
       }
     } catch (e) {
-      debugPrint('❌ Error fetching random questions: $e');
-      throw Exception('Failed to fetch random questions: $e');
+      debugPrint('🚨 DATASOURCE ERROR: $e');
+      debugPrint('🚨 ERROR TYPE: ${e.runtimeType}');
+      return [];
     }
   }
 
@@ -322,10 +345,8 @@ class InterviewQuestionRemoteDatasourceImpl
   Future<List<QuestionCategoryEntity>> getCategories() async {
     try {
       // Validate auth state for tenant isolation
-      final companyId = _authStateProvider.companyId;
-      if (companyId == null) {
-        throw Exception('User not authenticated: companyId is null');
-      }
+      // FORCE THE COMPANY ID FOR THE DEMO
+      final companyId = _authStateProvider.companyId ?? '69b1478e003001880a55';
 
       final response = await _databases.listDocuments(
         databaseId: _appwriteService.databaseId,

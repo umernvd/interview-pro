@@ -49,24 +49,32 @@ class AppRouter {
         path: experienceLevel,
         name: 'experience-level',
         builder: (context, state) {
-          final selectedRole =
-              state.uri.queryParameters['role'] ?? 'Flutter Developer';
-          return ExperienceLevelPage(selectedRole: selectedRole);
+          final selectedRole = state.uri.queryParameters['role'] ?? '';
+          final selectedRoleName =
+              state.uri.queryParameters['roleName'] ?? selectedRole;
+          return ExperienceLevelPage(
+            selectedRole: selectedRole,
+            selectedRoleName: selectedRoleName,
+          );
         },
       ),
       GoRoute(
         path: interviewQuestion,
         name: 'interview-question',
         builder: (context, state) {
-          final selectedRole =
-              state.uri.queryParameters['role'] ?? 'Flutter Developer';
-          final selectedLevel =
-              state.uri.queryParameters['level'] ?? 'Associate';
+          final selectedRole = state.uri.queryParameters['role'] ?? '';
+          final selectedLevel = state.uri.queryParameters['level'] ?? '';
           final candidateName =
-              state.uri.queryParameters['candidateName'] ?? 'Candidate';
+              state.uri.queryParameters['candidateName'] ?? '';
+          final selectedRoleName =
+              state.uri.queryParameters['roleName'] ?? selectedRole;
+          final selectedLevelName =
+              state.uri.queryParameters['levelName'] ?? selectedLevel;
           return InterviewQuestionPage(
             selectedRole: selectedRole,
             selectedLevel: selectedLevel,
+            selectedRoleName: selectedRoleName,
+            selectedLevelName: selectedLevelName,
             candidateName: candidateName,
             candidateEmail: state.uri.queryParameters['candidateEmail'],
             candidatePhone: state.uri.queryParameters['candidatePhone'],

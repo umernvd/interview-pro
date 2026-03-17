@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/app_router.dart';
 import '../../../../shared/domain/entities/entities.dart';
 import '../providers/history_provider.dart';
@@ -401,31 +400,13 @@ class _HistoryContentWidgetState extends State<HistoryContentWidget> {
       return interview.roleName;
     }
 
-    // Priority 2: Fallback to Enum display name for legacy data
-    switch (interview.role) {
-      case Role.flutter:
-        return AppStrings.flutterDeveloper;
-      case Role.backend:
-        return AppStrings.backendDeveloper;
-      case Role.frontend:
-        return AppStrings.frontendDeveloper;
-      case Role.fullStack:
-        return AppStrings.fullStackDeveloper;
-      case Role.mobile:
-        return AppStrings.mobileDeveloper;
-    }
+    // Fallback to dynamic role name
+    return interview.role.name;
   }
 
   /// Get level display name
-  String _getLevelDisplayName(Level level) {
-    switch (level) {
-      case Level.intern:
-        return AppStrings.intern;
-      case Level.associate:
-        return AppStrings.associate;
-      case Level.senior:
-        return AppStrings.senior;
-    }
+  String _getLevelDisplayName(ExperienceLevel level) {
+    return level.title;
   }
 
   /// Format date for display

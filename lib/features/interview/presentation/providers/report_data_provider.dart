@@ -84,7 +84,7 @@ class ReportDataProvider extends ChangeNotifier {
       interview: interview,
       roleName: interview.roleName.isNotEmpty
           ? interview.roleName
-          : interview.role.displayName,
+          : interview.role.name,
       overallScore: overallScore,
       technicalScore: technicalScore,
       softSkillsScore: interview.softSkillsScore,

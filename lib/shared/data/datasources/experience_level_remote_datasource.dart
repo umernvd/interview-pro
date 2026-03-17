@@ -1,8 +1,13 @@
+import 'package:appwrite/appwrite.dart';
 import '../../domain/entities/experience_level.dart';
+import '../../../core/services/appwrite_service.dart';
+import '../../../core/providers/auth_state_provider.dart';
+import '../../../core/config/appwrite_config.dart';
 
 /// Remote datasource for experience levels using direct entities
 abstract class ExperienceLevelRemoteDatasource {
   Future<List<ExperienceLevel>> getExperienceLevels();
+  Future<List<ExperienceLevel>> getExperienceLevelsByRole(String roleId);
   Future<ExperienceLevel> createExperienceLevel({
     required String title,
     required String description,
@@ -18,36 +23,81 @@ abstract class ExperienceLevelRemoteDatasource {
 /// Implementation of experience level remote datasource
 class ExperienceLevelRemoteDatasourceImpl
     implements ExperienceLevelRemoteDatasource {
+  final AppwriteService _appwriteService;
+  final AuthStateProvider _authStateProvider;
+
+  static const String _collectionId = 'experience_levels';
+
+  ExperienceLevelRemoteDatasourceImpl(
+    this._appwriteService,
+    this._authStateProvider,
+  );
+
+  ExperienceLevel _docToEntity(dynamic doc) {
+    final data = doc.data as Map<String, dynamic>;
+    final now = DateTime.now();
+    return ExperienceLevel(
+      id: doc.$id as String,
+      title: data['title'] as String? ?? '',
+      description: data['description'] as String? ?? '',
+      sortOrder: data['sortOrder'] as int? ?? 0,
+      isActive: data['isActive'] as bool? ?? true,
+      createdAt: data['\$createdAt'] != null
+          ? DateTime.tryParse(data['\$createdAt'].toString()) ?? now
+          : now,
+      updatedAt: data['\$updatedAt'] != null
+          ? DateTime.tryParse(data['\$updatedAt'].toString()) ?? now
+          : now,
+    );
+  }
+
   @override
   Future<List<ExperienceLevel>> getExperienceLevels() async {
-    final now = DateTime.now();
-    // Return predefined experience levels
-    return [
-      ExperienceLevel(
-        id: 'intern',
-        title: 'Intern',
-        description: 'Entry-level position for students or recent graduates',
-        sortOrder: 1,
-        createdAt: now,
-        updatedAt: now,
-      ),
-      ExperienceLevel(
-        id: 'associate',
-        title: 'Associate',
-        description: 'Mid-level position with 1-3 years of experience',
-        sortOrder: 2,
-        createdAt: now,
-        updatedAt: now,
-      ),
-      ExperienceLevel(
-        id: 'senior',
-        title: 'Senior',
-        description: 'Senior-level position with 3+ years of experience',
-        sortOrder: 3,
-        createdAt: now,
-        updatedAt: now,
-      ),
-    ];
+    try {
+      final companyId = _authStateProvider.companyId;
+      if (companyId == null) {
+        throw Exception('User not authenticated: companyId is null');
+      }
+
+      final response = await _appwriteService.databases.listDocuments(
+        databaseId: AppwriteConfig.databaseId,
+        collectionId: _collectionId,
+        queries: [
+          Query.equal('isActive', true),
+          Query.equal('companyId', companyId),
+          Query.orderAsc('sortOrder'),
+        ],
+      );
+
+      return response.documents.map(_docToEntity).toList();
+    } catch (e) {
+      throw Exception('Failed to fetch experience levels: $e');
+    }
+  }
+
+  @override
+  Future<List<ExperienceLevel>> getExperienceLevelsByRole(String roleId) async {
+    try {
+      final companyId = _authStateProvider.companyId;
+      if (companyId == null) {
+        throw Exception('User not authenticated: companyId is null');
+      }
+
+      final response = await _appwriteService.databases.listDocuments(
+        databaseId: AppwriteConfig.databaseId,
+        collectionId: _collectionId,
+        queries: [
+          Query.equal('roleId', roleId),
+          Query.equal('isActive', true),
+          Query.equal('companyId', companyId),
+          Query.orderAsc('sortOrder'),
+        ],
+      );
+
+      return response.documents.map(_docToEntity).toList();
+    } catch (e) {
+      return [];
+    }
   }
 
   @override
@@ -75,9 +125,7 @@ class ExperienceLevelRemoteDatasourceImpl
   }
 
   @override
-  Future<void> deleteExperienceLevel(String id) async {
-    // No-op for predefined levels
-  }
+  Future<void> deleteExperienceLevel(String id) async {}
 
   @override
   Future<bool> hasExperienceLevels() async {

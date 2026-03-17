@@ -109,7 +109,7 @@ class ReportPdfService {
             children: [
               _infoItem(
                 'LEVEL',
-                reportData.interview.level.displayName.toUpperCase(),
+                reportData.interview.level.title.toUpperCase(),
               ),
               _infoItem('DATE', _formatDate(reportData.interview.startTime)),
             ],

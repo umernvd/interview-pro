@@ -228,7 +228,7 @@ class InterviewQuestion extends Equatable {
   /// Creates from JSON (from Appwrite)
   factory InterviewQuestion.fromJson(Map<String, dynamic> json) {
     return InterviewQuestion(
-      id: json['id'] ?? json['\$id'] ?? '',
+      id: json[r'$id'] ?? json['id'] ?? '',
       question: json['question'] ?? '',
       category: json['category'] ?? '',
       difficulty: json['difficulty'] ?? '',
