@@ -62,6 +62,10 @@ class AuthService {
         throw Exception("Invalid email or auth code.");
       }
 
+      debugPrint(
+        '✅ Interviewer found: id=${interviewer.id}, userId=${interviewer.userId}',
+      );
+
       // Step 4: Handle first-time vs returning user
       if (interviewer.userId == null) {
         // First-time user: Create account, session, and update DB
@@ -334,7 +338,9 @@ class AuthService {
   }
 
   /// Handle returning user login
-  /// Creates session only (account already exists)
+  /// Creates session only (account already exists).
+  /// If credentials are stale (auth code was rotated), falls back to
+  /// first-time user flow which recreates the account with the new password.
   Future<void> _handleReturningUser(
     String email,
     String appwritePassword,
@@ -343,9 +349,16 @@ class AuthService {
     try {
       await _createSessionWithRetry(email, appwritePassword);
       debugPrint('✅ Created session for returning user');
-    } catch (e) {
-      debugPrint('❌ Error creating session for returning user: $e');
-      rethrow;
+    } on AppwriteException catch (e) {
+      if (e.code == 401) {
+        // Auth code was rotated — treat as first-time to recreate account
+        debugPrint(
+          '⚠️ Stale password detected, recreating account with new auth code',
+        );
+        await _handleFirstTimeUser(email, appwritePassword, interviewer);
+      } else {
+        rethrow;
+      }
     }
   }
 

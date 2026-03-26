@@ -86,222 +86,238 @@ class _LoginScreenState extends State<LoginScreen> {
         body: SafeArea(
           child: Stack(
             children: [
-              Padding(
+              SingleChildScrollView(
                 padding: const EdgeInsets.all(24.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Title
-                      Text(
-                        'Welcome Back',
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(
-                              color: Colors.black,
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Sign in with your email and auth code',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.black87,
-                          fontSize: 16,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 48),
-
-                      // Email TextField
-                      TextFormField(
-                        controller: _emailController,
-                        focusNode: _emailFocusNode,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        cursorColor: AppColors.primary,
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          labelStyle: TextStyle(
-                            color: Colors.black87,
-                            fontSize: 16,
-                          ),
-                          hintText: 'Enter your email',
-                          hintStyle: TextStyle(
-                            color: Colors.black38,
-                            fontSize: 16,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.email_outlined,
-                            color: AppColors.primary,
-                            size: 24,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: AppColors.primary,
-                              width: 2,
-                            ),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: AppColors.primary),
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: AppColors.primary,
-                              width: 2,
-                            ),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                        ),
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 17,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          if (!value.contains('@')) {
-                            return 'Please enter a valid email';
-                          }
-                          return null;
-                        },
-                        onFieldSubmitted: (_) {
-                          _authCodeFocusNode.requestFocus();
-                        },
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Auth Code TextField
-                      TextFormField(
-                        controller: _authCodeController,
-                        focusNode: _authCodeFocusNode,
-                        keyboardType: TextInputType.text,
-                        textInputAction: TextInputAction.done,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        maxLength: 6,
-                        cursorColor: AppColors.primary,
-                        decoration: InputDecoration(
-                          labelText: 'Auth Code',
-                          labelStyle: TextStyle(
-                            color: Colors.black87,
-                            fontSize: 16,
-                          ),
-                          hintText: 'Enter your auth code',
-                          hintStyle: TextStyle(
-                            color: Colors.black38,
-                            fontSize: 16,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.lock_outline,
-                            color: AppColors.primary,
-                            size: 24,
-                          ),
-                          counterText: '', // Hide character counter
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: AppColors.primary,
-                              width: 2,
-                            ),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: AppColors.primary),
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: AppColors.primary,
-                              width: 2,
-                            ),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                        ),
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 17,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter your auth code';
-                          }
-                          if (value.trim().length != 6) {
-                            return 'Auth code must be 6 characters';
-                          }
-                          return null;
-                        },
-                        onFieldSubmitted: (_) {
-                          _handleLogin();
-                        },
-                      ),
-                      const SizedBox(height: 36),
-
-                      // Submit Button
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _handleLogin,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 2,
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 22,
-                                width: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight:
+                        MediaQuery.of(context).size.height -
+                        MediaQuery.of(context).padding.top -
+                        MediaQuery.of(context).padding.bottom,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Title
+                          Text(
+                            'Welcome Back',
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
+                                  color: Colors.black,
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              )
-                            : Text(
-                                'Sign In',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.5,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Sign in with your email and auth code',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: Colors.black87, fontSize: 16),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 48),
+
+                          // Email TextField
+                          TextFormField(
+                            controller: _emailController,
+                            focusNode: _emailFocusNode,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            cursorColor: AppColors.primary,
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              labelStyle: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 16,
+                              ),
+                              hintText: 'Enter your email',
+                              hintStyle: const TextStyle(
+                                color: Colors.black38,
+                                fontSize: 16,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.email_outlined,
+                                color: AppColors.primary,
+                                size: 24,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
                                 ),
                               ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: AppColors.primary,
+                                  width: 2,
+                                ),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: AppColors.primary,
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                            ),
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 17,
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              if (!value.contains('@')) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
+                            },
+                            onFieldSubmitted: (_) =>
+                                _authCodeFocusNode.requestFocus(),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Auth Code TextField
+                          TextFormField(
+                            controller: _authCodeController,
+                            focusNode: _authCodeFocusNode,
+                            keyboardType: TextInputType.text,
+                            textInputAction: TextInputAction.done,
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            maxLength: 8,
+                            cursorColor: AppColors.primary,
+                            decoration: InputDecoration(
+                              labelText: 'Auth Code',
+                              labelStyle: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 16,
+                              ),
+                              hintText: 'Enter your auth code',
+                              hintStyle: const TextStyle(
+                                color: Colors.black38,
+                                fontSize: 16,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.lock_outline,
+                                color: AppColors.primary,
+                                size: 24,
+                              ),
+                              counterText: '',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: AppColors.primary,
+                                  width: 2,
+                                ),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: AppColors.primary,
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                            ),
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 17,
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter your auth code';
+                              }
+                              if (value.trim().length != 8) {
+                                return 'Auth code must be 8 characters';
+                              }
+                              return null;
+                            },
+                            onFieldSubmitted: (_) => _handleLogin(),
+                          ),
+                          const SizedBox(height: 36),
+
+                          // Submit Button
+                          ElevatedButton(
+                            onPressed: _isLoading ? null : _handleLogin,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 18),
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                            ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    height: 22,
+                                    width: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : const Text(
+                                    'Sign In',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-
               // Loading Overlay
               if (_isLoading)
                 Container(

@@ -1,4 +1,5 @@
 import 'package:appwrite/appwrite.dart';
+import 'package:flutter/foundation.dart';
 import '../../../core/config/appwrite_config.dart';
 import '../../../core/services/appwrite_service.dart';
 import '../../../core/providers/auth_state_provider.dart';
@@ -32,6 +33,7 @@ class RoleRemoteDatasourceImpl implements RoleRemoteDatasource {
       if (companyId == null) {
         throw Exception('User not authenticated: companyId is null');
       }
+      debugPrint('🔍 Fetching roles for companyId: $companyId');
 
       final response = await _appwriteService.databases.listDocuments(
         databaseId: AppwriteConfig.databaseId,

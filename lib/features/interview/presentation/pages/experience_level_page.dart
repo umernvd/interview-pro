@@ -40,8 +40,10 @@ class _ExperienceLevelPageState extends State<ExperienceLevelPage> {
     _experienceLevelProvider = ExperienceLevelProvider(
       sl<ExperienceLevelRepository>(),
     );
-    // Load experience levels in background without blocking UI
-    _experienceLevelProvider.loadExperienceLevelsInBackground();
+    // Load after first frame so the widget tree is ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _experienceLevelProvider.loadExperienceLevels();
+    });
   }
 
   @override
@@ -329,7 +331,7 @@ class _ExperienceLevelPageState extends State<ExperienceLevelPage> {
               content: SingleChildScrollView(
                 child: Consumer<CvUploadProvider>(
                   builder: (context, cvProvider, child) {
-                    final hasCv = cvProvider.cvUrl != null;
+                    final hasCv = cvProvider.hasFile;
                     final isUploading = cvProvider.isUploading;
                     final fileName = hasCv ? 'CV Attached' : 'Upload CV';
 
@@ -485,15 +487,7 @@ class _ExperienceLevelPageState extends State<ExperienceLevelPage> {
                                         final file = File(
                                           result.files.single.path!,
                                         );
-                                        await cvProvider.uploadCv(
-                                          file: file,
-                                          candidateName: nameController.text
-                                              .trim(),
-                                          candidateEmail: emailController.text
-                                              .trim(),
-                                          candidatePhone: phoneController.text
-                                              .trim(),
-                                        );
+                                        cvProvider.selectCvFile(file);
                                       }
                                     },
                               child: Container(
@@ -692,8 +686,8 @@ class _ExperienceLevelPageState extends State<ExperienceLevelPage> {
                                   return;
                                 }
 
-                                // Capture values before reset
-                                final cvFileId = cvProvider.cvFileId;
+                                // Capture CV file path before reset
+                                final cvFilePath = cvProvider.cvFile?.path;
                                 final cvFileUrl = cvProvider.cvUrl;
 
                                 cvProvider
@@ -715,8 +709,8 @@ class _ExperienceLevelPageState extends State<ExperienceLevelPage> {
                                   'driveFolderId': driveFolderId,
                                 };
 
-                                if (cvFileId != null) {
-                                  queryParams['candidateCvId'] = cvFileId;
+                                if (cvFilePath != null) {
+                                  queryParams['candidateCvId'] = cvFilePath;
                                 }
                                 if (cvFileUrl != null) {
                                   queryParams['candidateCvUrl'] = cvFileUrl;

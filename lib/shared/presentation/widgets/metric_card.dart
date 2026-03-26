@@ -25,11 +25,8 @@ class MetricCard extends StatelessWidget {
     return Container(
       padding: padding ?? const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: AppColors.primary,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: (iconColor ?? AppColors.primary).withOpacity(0.2),
-        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -44,16 +41,16 @@ class MetricCard extends StatelessWidget {
                 : MainAxisAlignment.start,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 18, color: iconColor ?? AppColors.primary),
+                Icon(icon, size: 18, color: Colors.white),
                 const SizedBox(width: 6),
               ],
               Flexible(
                 child: Text(
                   value,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: iconColor ?? AppColors.primary,
+                    color: Colors.white,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -63,10 +60,10 @@ class MetricCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[700],
+              color: Colors.white,
             ),
             textAlign: center ? TextAlign.center : TextAlign.start,
             maxLines: 1,

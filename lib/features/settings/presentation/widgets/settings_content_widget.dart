@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/auth_service.dart';
+import '../../../../core/services/service_locator.dart';
+import '../../../../core/utils/app_router.dart';
 import '../../../history/presentation/providers/history_provider.dart';
 import '../../../dashboard/presentation/providers/dashboard_provider.dart';
 
@@ -46,6 +50,13 @@ class _SettingsContentWidgetState extends State<SettingsContentWidget> {
 
             // About Section
             _buildAboutSection(),
+
+            const SizedBox(height: 32),
+
+            // Logout Button
+            _buildLogoutButton(),
+
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -177,7 +188,14 @@ class _SettingsContentWidgetState extends State<SettingsContentWidget> {
                   size: 20,
                   color: Colors.grey[400],
                 ),
-                onTap: () {},
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Managed via web dashboard'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
               ),
 
               // Divider
@@ -329,7 +347,14 @@ class _SettingsContentWidgetState extends State<SettingsContentWidget> {
                   size: 20,
                   color: Colors.grey[400],
                 ),
-                onTap: () {},
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Coming soon'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
               ),
 
               // Divider
@@ -343,13 +368,82 @@ class _SettingsContentWidgetState extends State<SettingsContentWidget> {
                   size: 20,
                   color: Colors.grey[400],
                 ),
-                onTap: () {},
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Coming soon'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
               ),
             ],
           ),
         ),
       ],
     );
+  }
+
+  /// Builds the logout button
+  Widget _buildLogoutButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: OutlinedButton.icon(
+        onPressed: () => _handleLogout(),
+        icon: const Icon(Icons.logout, size: 20, color: AppColors.primary),
+        label: const Text(
+          'Log Out',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.primary,
+          ),
+        ),
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: AppColors.primary),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleLogout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Log Out'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+            child: const Text('Log Out'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await sl<AuthService>().logout();
+      if (mounted) {
+        context.go(AppRouter.login);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Logout failed: $e')));
+      }
+    }
   }
 
   /// Builds a settings item row

@@ -1,20 +1,17 @@
 import 'package:flutter/foundation.dart';
 import '../../../../shared/domain/entities/entities.dart';
 import '../../../../shared/domain/repositories/repositories.dart';
-import '../../../../core/services/drive_service.dart';
 import '../../../../shared/data/datasources/sync_remote_datasource.dart';
 
 /// Provider for managing interview setup state and logic
 class InterviewSetupProvider extends ChangeNotifier {
   final InterviewQuestionRepository _questionRepository;
   final InterviewRepository _interviewRepository;
-  final DriveService _driveService;
   final SyncRemoteDatasource _syncRemoteDatasource;
 
   InterviewSetupProvider(
     this._questionRepository,
     this._interviewRepository,
-    this._driveService,
     this._syncRemoteDatasource,
   );
 
@@ -35,7 +32,7 @@ class InterviewSetupProvider extends ChangeNotifier {
       _selectedLevel != null &&
       _candidateName.trim().isNotEmpty;
 
-  /// Prepares the candidate workspace by checking for existing or creating new folder
+  /// Prepares the candidate workspace — folder is created by backend on upload
   Future<String> prepareCandidateWorkspace(
     String candidateName, {
     String? candidateEmail,
@@ -44,14 +41,7 @@ class InterviewSetupProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 1. Check connection
-      if (_driveService.driveApi == null) {
-        throw Exception(
-          'Google Drive is not connected. Please connect from Dashboard.',
-        );
-      }
-
-      // 2. Check for existing folder if email provided (Deduplication)
+      // Check for existing folder if email provided (Deduplication)
       if (candidateEmail != null && candidateEmail.isNotEmpty) {
         try {
           final existingCandidate = await _syncRemoteDatasource
@@ -68,22 +58,11 @@ class InterviewSetupProvider extends ChangeNotifier {
           }
         } catch (e) {
           debugPrint('⚠️ Error checking existing candidate folder: $e');
-          // Fallthrough to create new if check fails
         }
       }
 
-      // 3. Create Unique Folder directly
-      final folderId = await _driveService.createUniqueCandidateFolder(
-        candidateName,
-      );
-
-      if (folderId == null) {
-        throw Exception(
-          'Failed to create a unique folder on Google Drive. Please check your connection.',
-        );
-      }
-
-      return folderId;
+      // Return a placeholder — actual folder is created by backend during upload
+      return 'pending_${DateTime.now().millisecondsSinceEpoch}';
     } catch (e) {
       debugPrint('Error preparing workspace: $e');
       rethrow;

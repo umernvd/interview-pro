@@ -163,7 +163,8 @@ class _InterviewQuestionPageState extends State<InterviewQuestionPage>
         candidatePhone: widget.candidatePhone,
         candidateCvId: widget.candidateCvId,
         candidateCvUrl: widget.candidateCvUrl,
-        cvFilePath: widget.candidateCvUrl,
+        cvFilePath:
+            widget.candidateCvId, // local file path passed via candidateCvId
         driveFolderId: widget.driveFolderId,
         roleString: widget.selectedRole,
         roleNameString: widget.selectedRoleName,

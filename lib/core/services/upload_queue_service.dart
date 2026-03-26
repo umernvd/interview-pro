@@ -3,28 +3,20 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'drive_service.dart';
 import '../../shared/data/datasources/sync_remote_datasource.dart';
-
-/// Service to handle background uploads with offline resilience
-import '../providers/auth_provider.dart';
+import 'interview_media_upload_service.dart';
+import 'service_locator.dart';
 
 /// Service to handle background uploads with offline resilience
 class UploadQueueService {
-  final DriveService _driveService;
   final Box _queueBox;
-  final AuthProvider _authProvider;
   final SyncRemoteDatasource _syncRemoteDatasource;
 
   static const String _boxName = 'uploadQueue';
-  final Map<String, String> _folderIdCache = {};
   bool _isProcessRunning = false;
 
-  UploadQueueService(
-    this._driveService,
-    this._authProvider,
-    this._syncRemoteDatasource,
-  ) : _queueBox = Hive.box(_boxName) {
+  UploadQueueService(this._syncRemoteDatasource)
+    : _queueBox = Hive.box(_boxName) {
     _initConnectivityListener();
   }
 
@@ -93,16 +85,6 @@ class UploadQueueService {
     _isProcessRunning = true;
 
     try {
-      // Ensure we have a valid client before processing
-      final client = await _authProvider.getAuthenticatedClient();
-      if (client != null) {
-        _driveService.updateClient(client);
-      } else {
-        debugPrint('⚠️ User not signed in. pausing upload queue processing.');
-        return;
-      }
-
-      // Iterate through keys to handle removals safely
       final keys = _queueBox.keys.toList();
 
       for (final key in keys) {
@@ -111,6 +93,7 @@ class UploadQueueService {
         final String filePath = task['filePath'];
         final String candidateName =
             task['candidateName'] ?? 'Unknown Candidate';
+        final String? cvFilePath = task['candidateCvId']; // local CV file path
         final String? driveFolderId = task['driveFolderId'];
 
         debugPrint('🔄 Processing upload for $interviewId...');
@@ -123,7 +106,6 @@ class UploadQueueService {
             continue;
           }
 
-          // Verify file is not empty and accessible
           final length = await file.length();
           if (length == 0) {
             debugPrint('⚠️ File is empty: $filePath. Removing from queue.');
@@ -131,83 +113,42 @@ class UploadQueueService {
             continue;
           }
 
-          // 1. Resolve Target Folder (Per Candidate)
-          String? targetFolderId = driveFolderId;
-
-          // Only resolve by name if ID is missing (Legacy fallback or safeguard)
-          if (targetFolderId == null) {
-            debugPrint(
-              '⚠️ Missing driveFolderId for $interviewId. Falling back to name resolution.',
-            );
-            final safeName = DriveService.sanitizeFileName(candidateName);
-            targetFolderId = _folderIdCache[safeName];
-
-            if (targetFolderId == null) {
-              targetFolderId = await _driveService.getOrCreateFolder(safeName);
-              if (targetFolderId != null) {
-                _folderIdCache[safeName] = targetFolderId;
-              } else {
-                debugPrint('❌ Failed to resolve Drive folder for $safeName.');
-                continue; // Skip this task but don't delete (retry later)
-              }
-            }
-          }
-
-          // 2. Upload to Drive (Pass path, let service handle stream)
-          final driveResult = await _driveService.uploadFile(
-            file,
-            folderId: targetFolderId,
+          // Upload via backend (no Google Sign-In required)
+          final uploadService = sl<InterviewMediaUploadService>();
+          final result = await uploadService.uploadInterviewMedia(
+            mediaFilePath: filePath,
+            candidateName: candidateName,
+            cvFilePath: cvFilePath,
           );
-          final driveFileId = driveResult['id']!;
-          final driveFileUrl = driveResult['url']!;
 
-          debugPrint('✅ Upload success. Updating database...');
+          final driveFileUrl =
+              result['audioUrl'] ?? result['driveFileUrl'] ?? '';
+          final cvUrl = result['cvUrl'];
+          final resolvedFolderId = driveFolderId ?? '';
 
-          // 2. Sidecar Sync: Ensure presence in Appwrite (Candidates + Interview Metadata)
+          debugPrint('✅ Upload success. Syncing metadata...');
+
           try {
-            // A. Sync Candidate
-            // Note: We need candidate info. Since queue only has interviewId, and we know
-            // the full interview object is in local storage, we ideally need to peek at it.
-            // However, to keep this decoupled, we might need to pass candidate info in the queue task
-            // OR fetch it from the repository here.
-            // Given the constraints, let's fetch the interview from the repository to get the candidate details.
-            // Accessing repository here is safe as it's a read operation.
-
-            // To do this clean, we'll need to inject InterviewRepository or pass data in the task.
-            // Let's check if we can pass it in the task map for simplicity and isolation.
-
-            final String candidateName =
-                task['candidateName'] ?? 'Unknown Candidate';
             final String candidateEmail =
-                task['candidateEmail'] ?? 'unknown@candidate.com'; // Fallback
+                task['candidateEmail'] ?? 'unknown@candidate.com';
             final String? candidatePhone = task['candidatePhone'];
-            final String? candidateCvId = task['candidateCvId'];
-            final String? candidateCvUrl = task['candidateCvUrl'];
+            final String? candidateCvUrl = cvUrl ?? task['candidateCvUrl'];
 
-            debugPrint('🔄 Syncing Sidecar Metadata for $interviewId...');
-
-            // B. Sync Interview Metadata (Handles Candidate Sync internally)
             await _syncRemoteDatasource.syncInterviewMetadata(
               candidateName: candidateName,
               candidateEmail: candidateEmail,
               candidatePhone: candidatePhone,
-              candidateCvId: candidateCvId,
               candidateCvUrl: candidateCvUrl,
               interviewId: interviewId,
-              driveFileId: driveFileId,
+              driveFileId: '',
               driveFileUrl: driveFileUrl,
-              driveFolderId: targetFolderId, // Pass the resolved folder ID
+              driveFolderId: resolvedFolderId,
             );
-
             debugPrint('✅ Sidecar Sync Complete!');
           } catch (e) {
             debugPrint('⚠️ Sidecar Sync Failed (Non-blocking): $e');
-            // We do NOT rethrow here because the primary goal (Drive Upload) succeeded.
-            // Retrying the whole drive upload just because DB sync failed might be excessive
-            // unless strict consistency is required. Given "no trouble" requirement, we log and proceed.
           }
 
-          // 3. Remove from queue on success
           await _queueBox.delete(key);
           debugPrint('✨ Task completed and removed from queue');
         } catch (e) {

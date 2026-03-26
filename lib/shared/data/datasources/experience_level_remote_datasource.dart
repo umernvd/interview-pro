@@ -1,4 +1,5 @@
 import 'package:appwrite/appwrite.dart';
+import 'package:flutter/foundation.dart';
 import '../../domain/entities/experience_level.dart';
 import '../../../core/services/appwrite_service.dart';
 import '../../../core/providers/auth_state_provider.dart';
@@ -58,6 +59,7 @@ class ExperienceLevelRemoteDatasourceImpl
       if (companyId == null) {
         throw Exception('User not authenticated: companyId is null');
       }
+      debugPrint('🔍 Fetching experience levels for companyId: $companyId');
 
       final response = await _appwriteService.databases.listDocuments(
         databaseId: AppwriteConfig.databaseId,
@@ -69,6 +71,7 @@ class ExperienceLevelRemoteDatasourceImpl
         ],
       );
 
+      debugPrint('🔍 Experience levels found: ${response.documents.length}');
       return response.documents.map(_docToEntity).toList();
     } catch (e) {
       throw Exception('Failed to fetch experience levels: $e');

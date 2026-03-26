@@ -1,6 +1,8 @@
 import '../../domain/entities/role.dart';
 import '../../domain/repositories/role_repository.dart';
 import '../datasources/role_remote_datasource.dart';
+import '../../../core/services/service_locator.dart';
+import '../../../core/providers/auth_state_provider.dart';
 
 /// Implementation of RoleRepository using Appwrite
 class RoleRepositoryImpl implements RoleRepository {
@@ -31,11 +33,13 @@ class RoleRepositoryImpl implements RoleRepository {
   @override
   Future<Role> createRole(Role role) async {
     try {
+      final companyId = sl<AuthStateProvider>().companyId;
       final roleDocument = await _remoteDatasource.createRoleAsJson({
         'name': role.name,
         'icon': role.icon,
         'description': role.description,
         'isActive': role.isActive,
+        'companyId': ?companyId,
       });
       return Role.fromJson(roleDocument);
     } catch (e) {

@@ -138,10 +138,10 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary,
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: Icon(Icons.mic, size: 16, color: AppColors.primary),
+                child: const Icon(Icons.mic, size: 16, color: Colors.white),
               ),
               const SizedBox(width: 10),
               Expanded(

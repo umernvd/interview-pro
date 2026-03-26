@@ -418,6 +418,7 @@ class _InterviewSetupPageState extends State<InterviewSetupPage> {
       case 'design_services':
         return Icons.design_services;
       case 'business_center':
+      case 'briefcase':
         return Icons.business_center;
       case 'storage':
       case 'dns':

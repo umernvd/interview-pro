@@ -29,7 +29,7 @@ Future<void> initializeDependencies() async {
   await Hive.openBox('voiceRecordingsBox');
   await UploadQueueService.init();
 
-  // Initialize Appwrite service first
+  // Initialize Appwrite service first (just client setup, no network)
   sl.registerLazySingleton<AppwriteService>(() => AppwriteService.instance);
   sl<AppwriteService>().initialize();
   await sl<AppwriteService>().performSilentLogin();
@@ -66,7 +66,7 @@ Future<void> initializeDependencies() async {
   );
 
   sl.registerLazySingleton<ExperienceLevelRepository>(
-    () => ExperienceLevelRepositoryImpl(),
+    () => ExperienceLevelRepositoryImpl(sl<ExperienceLevelRemoteDatasource>()),
   );
 
   sl.registerLazySingleton<InterviewQuestionRepository>(
@@ -98,11 +98,7 @@ Future<void> initializeDependencies() async {
   );
 
   sl.registerLazySingleton<UploadQueueService>(
-    () => UploadQueueService(
-      sl<DriveService>(),
-      sl<AuthProvider>(),
-      sl<SyncRemoteDatasource>(),
-    ),
+    () => UploadQueueService(sl<SyncRemoteDatasource>()),
   );
 
   sl.registerLazySingleton<DataManagementService>(
@@ -124,9 +120,11 @@ Future<void> initializeDependencies() async {
   // Initialize data sources
   // (No local data sources to initialize)
 
-  // Initialize interview questions from JSON
-  await sl<InterviewQuestionRepository>().initializeDefaultQuestions();
-
   // Load any cached interview session
   await sl<InterviewSessionManager>().loadSessionFromCache();
+
+  // Defer question initialization — not needed at startup
+  Future.microtask(() async {
+    await sl<InterviewQuestionRepository>().initializeDefaultQuestions();
+  });
 }

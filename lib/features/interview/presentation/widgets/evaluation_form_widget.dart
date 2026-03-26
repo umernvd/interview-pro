@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_strings.dart';
-
 import '../../../../shared/domain/entities/entities.dart';
-
-import '../../../../shared/presentation/extensions/verdict_ui_extension.dart';
 import '../providers/evaluation_provider.dart';
 import 'star_rating_widget.dart';
 
 /// Form widget for candidate evaluation
 class EvaluationFormWidget extends StatefulWidget {
-  const EvaluationFormWidget({super.key});
+  final double? technicalScore;
+
+  const EvaluationFormWidget({super.key, this.technicalScore});
 
   @override
   State<EvaluationFormWidget> createState() => _EvaluationFormWidgetState();
@@ -145,69 +144,66 @@ class _EvaluationFormWidgetState extends State<EvaluationFormWidget> {
     BuildContext context,
     EvaluationProvider provider,
   ) {
+    // Verdict based on technical score (correct/total), not soft skills stars
+    final score = widget.technicalScore ?? 0.0;
+    final isRecommended = score >= 70.0;
+    final verdict = isRecommended
+        ? InterviewVerdict.hire
+        : InterviewVerdict.reject;
+    final label = isRecommended ? 'Recommended for Hire' : 'Not Recommended';
+    final icon = isRecommended ? Icons.verified_rounded : Icons.cancel_rounded;
+    final bgColor = isRecommended
+        ? const Color(0xFF16A34A)
+        : const Color(0xFFDC2626);
+
+    if (provider.verdict != verdict) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        provider.updateVerdict(verdict);
+      });
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            const Text(
-              'Final Verdict',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '*',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.red[700],
-              ),
-            ),
-          ],
+        const Text(
+          'Final Verdict',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.black,
+          ),
         ),
         const SizedBox(height: 12),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: bgColor,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[300]!),
           ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<InterviewVerdict>(
-              value: provider.verdict,
-              dropdownColor: Colors.white,
-              hint: const Text(
-                'Select a verdict',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
-              ),
-              isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-              items: InterviewVerdict.values.map((verdict) {
-                return DropdownMenuItem<InterviewVerdict>(
-                  value: verdict,
-                  child: Row(
-                    children: [
-                      Icon(verdict.icon, size: 20, color: verdict.color),
-                      const SizedBox(width: 12),
-                      Text(
-                        verdict.displayName,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+          child: Row(
+            children: [
+              Icon(icon, size: 22, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
-                );
-              }).toList(),
-              onChanged: provider.updateVerdict,
-            ),
+                ),
+              ),
+              Text(
+                '${score.toStringAsFixed(1)}%',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
         ),
       ],

@@ -142,25 +142,13 @@ class _InterviewReportPageState extends State<InterviewReportPage> {
             ),
           ),
 
-          // Action buttons
-          Row(
-            children: [
-              _buildHeaderAction(
-                icon: Icons.share_rounded,
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  _onShareReport();
-                },
-              ),
-              const SizedBox(width: 8),
-              _buildHeaderAction(
-                icon: Icons.download_rounded,
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  _onDownloadReport();
-                },
-              ),
-            ],
+          // Download only
+          _buildHeaderAction(
+            icon: Icons.download_rounded,
+            onTap: () {
+              HapticFeedback.mediumImpact();
+              _onDownloadReport();
+            },
           ),
         ],
       ),
@@ -300,15 +288,14 @@ class _InterviewReportPageState extends State<InterviewReportPage> {
     );
   }
 
-  /// Builds the recommendation badge as a separate component
   Widget _buildRecommendationBadge(ReportData? reportData) {
     final score = reportData?.overallScore ?? widget.overallScore;
     final isRecommended = score >= 70.0;
-    final color = isRecommended ? AppColors.primary : Colors.red;
-    final text =
-        reportData?.recommendation ??
-        (isRecommended ? AppStrings.recommended : AppStrings.notRecommended);
-    final icon = isRecommended ? Icons.verified : Icons.cancel;
+    final color = isRecommended
+        ? const Color(0xFF16A34A)
+        : const Color(0xFFDC2626);
+    final icon = isRecommended ? Icons.verified_rounded : Icons.cancel_rounded;
+    final text = isRecommended ? 'Recommended for Hire' : 'Not Recommended';
 
     return Column(
       mainAxisSize: MainAxisSize.min,

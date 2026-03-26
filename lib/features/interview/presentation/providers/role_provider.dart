@@ -3,6 +3,7 @@ import '../../../../core/config/appwrite_config.dart';
 import '../../../../core/services/service_locator.dart';
 import '../../../../core/services/cache_manager.dart';
 import '../../../../core/utils/retry_helper.dart';
+import '../../../../core/providers/auth_state_provider.dart';
 import '../../../../shared/domain/entities/role.dart';
 import '../../../../shared/domain/repositories/role_repository.dart';
 
@@ -32,6 +33,15 @@ class RoleProvider extends ChangeNotifier {
     _setLoading(true);
     _error = null;
 
+    // Guard: companyId must be set before we can fetch tenant-isolated roles
+    final companyId = sl<AuthStateProvider>().companyId;
+    if (companyId == null) {
+      _error = 'Not authenticated';
+      debugPrint('❌ Cannot load roles: companyId is null');
+      _setLoading(false);
+      return;
+    }
+
     // Try to get from cache first
     final cachedRoles = CacheManager.get<List<Role>>(CacheManager.rolesKey);
     if (cachedRoles != null && cachedRoles.isNotEmpty) {
@@ -57,15 +67,6 @@ class RoleProvider extends ChangeNotifier {
     try {
       await RetryHelper.withRetry(
         () async {
-          // Check if roles exist in backend
-          final hasRoles = await _roleRepository.hasRoles();
-
-          if (!hasRoles) {
-            debugPrint('📝 No roles found, creating default roles...');
-            // Create default roles if none exist
-            await _createDefaultRoles();
-          }
-
           // Fetch roles from backend
           debugPrint('📥 Fetching roles from backend...');
           final backendRoles = await _roleRepository.getRoles();
@@ -75,17 +76,14 @@ class RoleProvider extends ChangeNotifier {
               '✅ Successfully loaded ${backendRoles.length} roles from backend',
             );
             _roles = backendRoles;
-
-            // Cache the roles
             CacheManager.set(
               CacheManager.rolesKey,
               backendRoles,
               CacheManager.rolesTTL,
             );
-
-            notifyListeners(); // Update UI with backend data
+            notifyListeners();
           } else {
-            _error = 'No roles returned from backend';
+            _error = 'No roles configured for this company';
             debugPrint('❌ No roles returned from backend');
           }
         },
@@ -112,68 +110,6 @@ class RoleProvider extends ChangeNotifier {
     if (_selectedRoleId != null) {
       _selectedRoleId = null;
       notifyListeners();
-    }
-  }
-
-  /// Create default roles in Appwrite backend
-  Future<void> _createDefaultRoles() async {
-    final defaultRoles = [
-      Role(
-        id: '',
-        name: 'Flutter Developer',
-        icon: 'flutter',
-        description: 'Mobile app development with Flutter framework',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Role(
-        id: '',
-        name: 'UI/UX Designer',
-        icon: 'design_services',
-        description: 'User interface and experience design',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Role(
-        id: '',
-        name: 'Product Manager',
-        icon: 'business_center',
-        description: 'Product strategy and management',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Role(
-        id: '',
-        name: 'Backend Engineer',
-        icon: 'storage',
-        description: 'Server-side development and APIs',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Role(
-        id: '',
-        name: 'QA Engineer',
-        icon: 'bug_report',
-        description: 'Quality assurance and testing',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Role(
-        id: '',
-        name: 'HR Specialist',
-        icon: 'people',
-        description: 'Human resources and talent management',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    ];
-
-    for (final role in defaultRoles) {
-      try {
-        await _roleRepository.createRole(role);
-      } catch (e) {
-        debugPrint('Failed to create role ${role.name}: $e');
-      }
     }
   }
 

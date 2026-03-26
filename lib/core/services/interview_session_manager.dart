@@ -409,6 +409,8 @@ class InterviewSessionManager extends ChangeNotifier {
             candidateName: _currentInterview!.candidateName,
             candidateEmail: effectiveEmail,
             candidatePhone: _currentCandidatePhone,
+            candidateCvId:
+                _currentInterview!.candidateCvId, // local CV file path
             driveFolderId: _currentInterview!.driveFolderId,
           );
           debugPrint('☁️ Queued recording for upload: $voiceRecordingPath');

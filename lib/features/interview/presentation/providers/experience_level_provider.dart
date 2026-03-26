@@ -30,7 +30,7 @@ class ExperienceLevelProvider extends BaseProvider<ExperienceLevel> {
     },
   ];
 
-  /// Load experience levels with backend integration and fallback
+  /// Load experience levels with backend integration
   Future<void> loadExperienceLevels() async {
     await loadItemsWithFallback(
       loadFromBackend: _loadFromBackend,
@@ -40,24 +40,11 @@ class ExperienceLevelProvider extends BaseProvider<ExperienceLevel> {
 
   /// Load experience levels in background without blocking UI
   void loadExperienceLevelsInBackground() {
-    loadItemsInBackground(
-      loadFallback: _loadFallbackLevels,
-      loadFromBackend: _loadFromBackend,
-    );
+    loadExperienceLevels();
   }
 
   /// Load experience levels from backend
   Future<void> _loadFromBackend() async {
-    debugPrint('🔧 Attempting to connect to Appwrite in background...');
-
-    // Check if experience levels exist
-    final hasLevels = await _repository.hasExperienceLevels();
-
-    if (!hasLevels) {
-      debugPrint('📝 No experience levels found, creating default levels...');
-      await _createDefaultLevels();
-    }
-
     debugPrint('📥 Fetching experience levels from backend...');
     final levels = await _repository.getExperienceLevels();
 
@@ -67,24 +54,8 @@ class ExperienceLevelProvider extends BaseProvider<ExperienceLevel> {
       debugPrint(
         '✅ Successfully loaded ${levels.length} experience levels from backend',
       );
-    }
-  }
-
-  /// Create default experience levels in backend
-  Future<void> _createDefaultLevels() async {
-    for (final levelData in _defaultLevels) {
-      try {
-        await _repository.createExperienceLevel(
-          title: levelData['title'],
-          description: levelData['description'],
-          sortOrder: levelData['sortOrder'],
-        );
-        debugPrint('✅ Created experience level: ${levelData['title']}');
-      } catch (e) {
-        debugPrint(
-          'Failed to create experience level ${levelData['title']}: $e',
-        );
-      }
+    } else {
+      debugPrint('❌ No experience levels returned from backend');
     }
   }
 

@@ -22,39 +22,33 @@ import 'core/services/crash_reporting_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
-  // Catch errors strictly outside of Flutter context
   runZonedGuarded<Future<void>>(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // Load environment variables
+      // Load env and run app immediately — don't block on network calls
       try {
         await dotenv.load(fileName: ".env");
-        debugPrint('✅ .env loaded successfully');
       } catch (e) {
         debugPrint('⚠️ .env file not found or failed to load: $e');
       }
 
-      // Initialize Crash Reporting
+      // Initialize crash reporting (fast, local only)
       final crashReporter = CrashReportingService();
       await crashReporter.init();
-
-      // Pass all uncaught Flutter errors to CrashReportingService
       FlutterError.onError = crashReporter.handleFlutterError;
 
-      // Set global status bar style for light theme
       SystemChrome.setSystemUIOverlayStyle(
         const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness:
-              Brightness.dark, // Black icons for light theme
+          statusBarIconBrightness: Brightness.dark,
           statusBarBrightness: Brightness.light,
           systemNavigationBarColor: Colors.white,
           systemNavigationBarIconBrightness: Brightness.dark,
         ),
       );
 
-      // Initialize dependencies with error handling (CRASH FIX)
+      // Initialize core dependencies synchronously (no network)
       try {
         await initializeDependencies();
         debugPrint('✅ Dependencies initialized successfully');
@@ -65,13 +59,11 @@ void main() async {
           stack,
           reason: 'Dependency Initialization Failed',
         );
-        // Continue with app launch - some features may not work but app won't crash
       }
 
       runApp(const InterviewProApp());
     },
     (error, stack) {
-      // Catch global async errors
       CrashReportingService().recordError(
         error,
         stack,
@@ -94,7 +86,7 @@ class InterviewProApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => DashboardProvider(sl())),
         ChangeNotifierProvider(create: (_) => HistoryProvider(sl())),
         ChangeNotifierProvider(
-          create: (_) => InterviewSetupProvider(sl(), sl(), sl(), sl()),
+          create: (_) => InterviewSetupProvider(sl(), sl(), sl()),
         ),
         ChangeNotifierProvider(create: (_) => EvaluationProvider(sl())),
         ChangeNotifierProvider(create: (_) => RoleProvider()),
@@ -102,9 +94,7 @@ class InterviewProApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ReportDataProvider(sl())),
         ChangeNotifierProvider(create: (_) => VoiceRecordingProvider(sl())),
         ChangeNotifierProvider(create: (_) => sl<AuthProvider>()),
-        ChangeNotifierProvider(
-          create: (_) => CvUploadProvider(sl(), sl(), sl()),
-        ),
+        ChangeNotifierProvider(create: (_) => CvUploadProvider(sl())),
       ],
       child: MaterialApp.router(
         title: 'InterviewPro',

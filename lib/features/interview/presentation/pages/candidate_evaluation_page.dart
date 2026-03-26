@@ -340,13 +340,6 @@ class _CandidateEvaluationPageState extends State<CandidateEvaluationPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Transcript Synchronization Status Indicator (Only if recording exists)
-              if (_completedInterview?.voiceRecordingPath != null &&
-                  _completedInterview!.voiceRecordingPath!.isNotEmpty)
-                _buildSTTStatus(),
-
-              const SizedBox(height: 16),
-
               // Candidate info card - centered
               Center(
                 child: CandidateInfoCard(
@@ -371,7 +364,9 @@ class _CandidateEvaluationPageState extends State<CandidateEvaluationPage> {
               ],
 
               // Evaluation form
-              const EvaluationFormWidget(),
+              EvaluationFormWidget(
+                technicalScore: _completedInterview?.technicalScore,
+              ),
             ],
           ),
         );
@@ -445,72 +440,6 @@ class _CandidateEvaluationPageState extends State<CandidateEvaluationPage> {
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSTTStatus() {
-    String message = 'Waiting for transcription...';
-    IconData icon = Icons.sync_problem;
-    Color color = Colors.grey;
-    bool isSyncing = false;
-
-    if (_isBackgroundTranscribing) {
-      message = 'AI is processing transcription...';
-      icon = Icons.sync;
-      color = AppColors.primary;
-      isSyncing = true;
-    } else if (_transcriptCache != null) {
-      // Logic for error reporting vs success vs empty
-      if (_transcriptCache!.startsWith(TranscriptionService.errorPrefix)) {
-        message = 'Transcription failed or unavailable';
-        icon = Icons.error_outline;
-        color = AppColors.error;
-      } else if (_transcriptCache!.trim() == '[]' ||
-          _transcriptCache!.trim().isEmpty) {
-        // 🔇 Silent Audio: Hide the status bar entirely to keep UI clean
-        return const SizedBox.shrink();
-      } else {
-        message = 'AI Dialogue Analysis Ready';
-        icon = Icons.auto_awesome;
-        color = Colors.green;
-      }
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Row(
-        children: [
-          if (isSyncing)
-            const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: AppColors.primary,
-              ),
-            )
-          else
-            Icon(icon, size: 18, color: color),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: color.withOpacity(0.8),
-              ),
-            ),
-          ),
-          if (_transcriptCache != null)
-            const Icon(Icons.bolt, size: 16, color: Colors.amber),
         ],
       ),
     );
