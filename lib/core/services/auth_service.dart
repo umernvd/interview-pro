@@ -3,6 +3,7 @@ import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart' as models;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'appwrite_service.dart';
 import '../providers/auth_state_provider.dart';
 import '../config/appwrite_config.dart';
@@ -84,6 +85,21 @@ class AuthService {
       }
 
       // Step 5: Save to cache and update state
+      // If the interviewer changed, clear local interview history (device-local data belongs to previous user)
+      final previousInterviewerId = _authStateProvider.interviewerId;
+      if (previousInterviewerId != null &&
+          previousInterviewerId != interviewer.id) {
+        debugPrint('🔄 Interviewer changed — clearing local interview history');
+        try {
+          final sharedPrefs = await SharedPreferences.getInstance();
+          await sharedPrefs.remove('stored_interviews');
+          await sharedPrefs.remove('stored_responses');
+          debugPrint('✅ Local interview history cleared for new user');
+        } catch (e) {
+          debugPrint('⚠️ Failed to clear local interview history: $e');
+        }
+      }
+
       await _saveToCache(
         normalizedEmail,
         interviewer.companyId,
