@@ -89,7 +89,9 @@ class InterviewQuestionProvider extends BaseProvider<InterviewQuestion> {
     await RetryHelper.withRetry(
       () async {
         debugPrint('📥 Fetching questions from backend via API...');
-        print('✅ PROVIDER SUCCESS: Successfully routed to the Next.js API!');
+        debugPrint(
+          '✅ PROVIDER SUCCESS: Successfully routed to the Next.js API!',
+        );
 
         // Use the new API method instead of direct Appwrite query
         final questions = await _repository.getRandomQuestions(

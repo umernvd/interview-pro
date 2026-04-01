@@ -58,6 +58,14 @@ class AudioPlayerProvider extends ChangeNotifier {
       // Set audio source
       await _player.setSource(DeviceFileSource(filePath));
 
+      // Read duration immediately after source is set (audioplayers may not fire
+      // onDurationChanged until playback starts, leaving totalDuration at zero)
+      final duration = await _player.getDuration();
+      if (duration != null && duration > Duration.zero) {
+        _totalDuration = duration;
+        debugPrint('🎵 Audio duration (eager): ${duration.inSeconds}s');
+      }
+
       // Listen to position changes
       _positionSubscription = _player.onPositionChanged.listen((position) {
         if (_isDisposed) return;
