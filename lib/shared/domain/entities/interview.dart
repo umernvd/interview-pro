@@ -327,7 +327,7 @@ class Interview extends Equatable {
       'endTime': endTime?.toIso8601String(),
       'lastModified': lastModified.toIso8601String(),
       'responses': responses.map((r) => r.toJson()).toList(),
-      'status': status.toString(),
+      'status': status.name,
       'overallScore': overallScore,
       'technicalScore': technicalScore, // Uses the dynamic getter
       'softSkillsScore': softSkillsScore,
@@ -430,14 +430,11 @@ class Interview extends Equatable {
   static InterviewStatus _parseInterviewStatus(dynamic statusValue) {
     if (statusValue == null) return InterviewStatus.inProgress;
 
-    final statusStr = statusValue.toString().toLowerCase();
-    for (final status in InterviewStatus.values) {
-      if (status.toString().toLowerCase().contains(statusStr) ||
-          statusStr.contains(status.toString().toLowerCase())) {
-        return status;
-      }
+    try {
+      return InterviewStatus.fromString(statusValue.toString());
+    } catch (_) {
+      return InterviewStatus.inProgress; // Default fallback
     }
-    return InterviewStatus.inProgress; // Default fallback
   }
 
   /// Helper method to safely parse Verdict from string
