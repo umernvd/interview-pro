@@ -39,7 +39,7 @@ class RoleRepositoryImpl implements RoleRepository {
         'icon': role.icon,
         'description': role.description,
         'isActive': role.isActive,
-        'companyId': ?companyId,
+        if (companyId != null) 'companyId': companyId,
       });
       return Role.fromJson(roleDocument);
     } catch (e) {

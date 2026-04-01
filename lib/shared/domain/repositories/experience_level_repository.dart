@@ -5,6 +5,9 @@ abstract class ExperienceLevelRepository {
   /// Get all experience levels from the backend
   Future<List<ExperienceLevel>> getExperienceLevels();
 
+  /// Get experience levels filtered by role
+  Future<List<ExperienceLevel>> getExperienceLevelsByRole(String roleId);
+
   /// Create a new experience level
   Future<ExperienceLevel> createExperienceLevel({
     required String title,
