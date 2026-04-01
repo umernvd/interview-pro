@@ -28,6 +28,9 @@ class AppwriteService {
 
   /// Perform a silent login using a unified service account to bypass Appwrite auth requirements.
   /// First checks if a session exists to avoid redundant login calls.
+  ///
+  /// NOTE: Service account credentials should be stored securely in environment variables
+  /// or backend configuration, NOT hardcoded in the app.
   Future<void> performSilentLogin() async {
     try {
       // 1. Check if a session already exists
@@ -38,9 +41,27 @@ class AppwriteService {
       if (e.code == 401) {
         debugPrint('⏳ Appwrite: No session found. Performing silent login...');
         try {
+          
+          // These should NOT be hardcoded in the app
+          const serviceEmail = String.fromEnvironment(
+            'SERVICE_ACCOUNT_EMAIL',
+            defaultValue: '',
+          );
+          const servicePassword = String.fromEnvironment(
+            'SERVICE_ACCOUNT_PASSWORD',
+            defaultValue: '',
+          );
+
+          if (serviceEmail.isEmpty || servicePassword.isEmpty) {
+            debugPrint(
+              '❌ Appwrite: Service account credentials not configured',
+            );
+            return;
+          }
+
           await _account.createEmailPasswordSession(
-            email: 'interviewer@acme.com', // Service account email
-            password: 'acmepassword123', // Service account password
+            email: serviceEmail,
+            password: servicePassword,
           );
           debugPrint('✅ Appwrite: Silent login successful!');
         } catch (loginError) {
