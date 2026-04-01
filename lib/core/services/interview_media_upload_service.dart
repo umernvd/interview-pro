@@ -28,10 +28,12 @@ class InterviewMediaUploadService {
   /// 2. Upload audio file to Google Drive (init + stream)
   /// 3. Upload optional CV file to Google Drive (init + stream)
   /// 4. Finalize upload with backend using both URLs atomically
-  /// Returns the response containing interviewId and driveFileUrl
+  /// Returns the response containing interviewId, driveFileUrl, and candidateFolderId
   Future<Map<String, dynamic>> uploadInterviewMedia({
     required String mediaFilePath,
     required String candidateName,
+    String? candidateEmail,
+    String? candidatePhone,
     String? cvFilePath,
     String? roleId,
     String? roleName,
@@ -101,7 +103,7 @@ class InterviewMediaUploadService {
 
       // STEP 1: Upload audio file to Google Drive
       debugPrint('📤 Step 1: Uploading audio file to Google Drive...');
-      final finalAudioDriveUrl = await _uploadSingleFileToDrive(
+      final audioUploadResult = await _uploadSingleFileToDrive(
         filePath: mediaFilePath,
         fileType: 'audio/mp4',
         fileName: '${candidateName.replaceAll(" ", "_")}_audio.m4a',
@@ -111,13 +113,15 @@ class InterviewMediaUploadService {
         roleName: roleName,
         jwt: jwt,
       );
+      final finalAudioDriveUrl = audioUploadResult['driveUrl']!;
+      final candidateFolderId = audioUploadResult['candidateFolderId'];
       debugPrint('✅ Audio file uploaded: $finalAudioDriveUrl');
 
       // STEP 2: Upload CV file to Google Drive (if provided)
       String? finalCvDriveUrl;
       if (cvFilePath != null && cvFilePath.isNotEmpty) {
         debugPrint('📤 Step 2: Uploading CV file to Google Drive...');
-        finalCvDriveUrl = await _uploadSingleFileToDrive(
+        final cvUploadResult = await _uploadSingleFileToDrive(
           filePath: cvFilePath,
           fileType: 'application/pdf',
           fileName: '${candidateName.replaceAll(" ", "_")}_cv.pdf',
@@ -127,6 +131,7 @@ class InterviewMediaUploadService {
           roleName: roleName,
           jwt: jwt,
         );
+        finalCvDriveUrl = cvUploadResult['driveUrl'];
         debugPrint('✅ CV file uploaded: $finalCvDriveUrl');
       }
 
@@ -147,6 +152,10 @@ class InterviewMediaUploadService {
         'interviewerId': effectiveInterviewerId,
         'companyId': effectiveCompanyId,
         'candidateName': candidateName,
+        if (candidateEmail != null && candidateEmail.isNotEmpty)
+          'candidateEmail': candidateEmail,
+        if (candidatePhone != null && candidatePhone.isNotEmpty)
+          'candidatePhone': candidatePhone,
         if (candidateId != null && candidateId.isNotEmpty)
           'candidateId': candidateId,
         if (roleId != null && roleId.isNotEmpty) 'roleId': roleId,
@@ -202,6 +211,7 @@ class InterviewMediaUploadService {
         'driveFileUrl': driveFileUrl,
         'audioUrl': finalAudioDriveUrl,
         'cvUrl': finalCvDriveUrl,
+        if (candidateFolderId != null) 'candidateFolderId': candidateFolderId,
       };
     } catch (e) {
       debugPrint('❌ Error uploading interview media: $e');
@@ -210,7 +220,8 @@ class InterviewMediaUploadService {
   }
 
   /// Helper method to upload a single file to Google Drive
-  Future<String> _uploadSingleFileToDrive({
+  /// Returns a map with 'driveUrl' and optionally 'candidateFolderId'
+  Future<Map<String, String>> _uploadSingleFileToDrive({
     required String filePath,
     required String fileType,
     required String fileName,
@@ -266,7 +277,12 @@ class InterviewMediaUploadService {
 
       final initData = jsonDecode(initResponse.body);
       final String uploadUrl = initData['uploadUrl'];
+      final String? candidateFolderId = initData['candidateFolderId'];
+
       debugPrint('  ✅ Upload URL received for: $fileName');
+      if (candidateFolderId != null) {
+        debugPrint('  📁 Candidate Folder ID: $candidateFolderId');
+      }
 
       // Stream file to Google Drive
       debugPrint('  📤 Streaming $fileName to Google Drive...');
@@ -311,7 +327,10 @@ class InterviewMediaUploadService {
           'https://drive.google.com/file/d/$driveFileId/view';
       debugPrint('  ✅ Google Drive File ID: $driveFileId');
 
-      return finalDriveUrl;
+      return {
+        'driveUrl': finalDriveUrl,
+        if (candidateFolderId != null) 'candidateFolderId': candidateFolderId,
+      };
     } catch (e) {
       debugPrint('❌ Error uploading file to Drive: $e');
       rethrow;

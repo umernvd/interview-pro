@@ -3,20 +3,19 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import '../../shared/data/datasources/sync_remote_datasource.dart';
+import '../../core/providers/auth_state_provider.dart';
 import 'interview_media_upload_service.dart';
 import 'service_locator.dart';
 
 /// Service to handle background uploads with offline resilience
 class UploadQueueService {
   final Box _queueBox;
-  final SyncRemoteDatasource _syncRemoteDatasource;
+  final AuthStateProvider _authStateProvider;
 
   static const String _boxName = 'uploadQueue';
   bool _isProcessRunning = false;
 
-  UploadQueueService(this._syncRemoteDatasource)
-    : _queueBox = Hive.box(_boxName) {
+  UploadQueueService(this._authStateProvider) : _queueBox = Hive.box(_boxName) {
     _initConnectivityListener();
   }
 
@@ -47,6 +46,10 @@ class UploadQueueService {
     String? candidateCvId,
     String? candidateCvUrl,
     String? driveFolderId,
+    String? roleId,
+    String? roleName,
+    String? levelId,
+    String? levelName,
   }) async {
     final task = {
       'interviewId': interviewId,
@@ -60,6 +63,12 @@ class UploadQueueService {
       'candidateCvId': candidateCvId,
       'candidateCvUrl': candidateCvUrl,
       'driveFolderId': driveFolderId,
+      'companyId': _authStateProvider.companyId,
+      'interviewerId': _authStateProvider.interviewerId,
+      'roleId': roleId,
+      'roleName': roleName,
+      'levelId': levelId,
+      'levelName': levelName,
       'createdTime': DateTime.now().toIso8601String(),
     };
 
@@ -94,7 +103,6 @@ class UploadQueueService {
         final String candidateName =
             task['candidateName'] ?? 'Unknown Candidate';
         final String? cvFilePath = task['candidateCvId']; // local CV file path
-        final String? driveFolderId = task['driveFolderId'];
 
         debugPrint('🔄 Processing upload for $interviewId...');
 
@@ -115,39 +123,34 @@ class UploadQueueService {
 
           // Upload via backend (no Google Sign-In required)
           final uploadService = sl<InterviewMediaUploadService>();
+          final String? roleId = task['roleId'];
+          final String? roleName = task['roleName'];
+          final String? levelId = task['levelId'];
+          final String? levelName = task['levelName'];
+          final String? candidateEmail = task['candidateEmail'];
+          final String? candidatePhone = task['candidatePhone'];
           final result = await uploadService.uploadInterviewMedia(
             mediaFilePath: filePath,
             candidateName: candidateName,
+            candidateEmail: candidateEmail,
+            candidatePhone: candidatePhone,
             cvFilePath: cvFilePath,
+            roleId: roleId,
+            roleName: roleName,
+            levelId: levelId,
+            levelName: levelName,
           );
 
-          final driveFileUrl =
-              result['audioUrl'] ?? result['driveFileUrl'] ?? '';
-          final cvUrl = result['cvUrl'];
-          final resolvedFolderId = driveFolderId ?? '';
-
-          debugPrint('✅ Upload success. Syncing metadata...');
-
-          try {
-            final String candidateEmail =
-                task['candidateEmail'] ?? 'unknown@candidate.com';
-            final String? candidatePhone = task['candidatePhone'];
-            final String? candidateCvUrl = cvUrl ?? task['candidateCvUrl'];
-
-            await _syncRemoteDatasource.syncInterviewMetadata(
-              candidateName: candidateName,
-              candidateEmail: candidateEmail,
-              candidatePhone: candidatePhone,
-              candidateCvUrl: candidateCvUrl,
-              interviewId: interviewId,
-              driveFileId: '',
-              driveFileUrl: driveFileUrl,
-              driveFolderId: resolvedFolderId,
+          debugPrint('✅ Upload success. Interview created by backend.');
+          if (result['candidateFolderId'] != null) {
+            debugPrint(
+              '📁 Using real Candidate Folder ID: ${result['candidateFolderId']}',
             );
-            debugPrint('✅ Sidecar Sync Complete!');
-          } catch (e) {
-            debugPrint('⚠️ Sidecar Sync Failed (Non-blocking): $e');
           }
+
+          // NOTE: Backend's finalize-upload endpoint already creates the interview
+          // with all required fields (candidateName, roleId, levelId, etc.)
+          // No need to sync metadata again - it would overwrite with incomplete data
 
           await _queueBox.delete(key);
           debugPrint('✨ Task completed and removed from queue');
