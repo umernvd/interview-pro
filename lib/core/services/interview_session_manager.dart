@@ -412,6 +412,10 @@ class InterviewSessionManager extends ChangeNotifier {
             candidateCvId:
                 _currentInterview!.candidateCvId, // local CV file path
             driveFolderId: _currentInterview!.driveFolderId,
+            roleId: _currentInterview!.role.id,
+            roleName: _currentInterview!.roleName,
+            levelId: _currentInterview!.level.id,
+            levelName: _currentInterview!.level.title,
           );
           debugPrint('☁️ Queued recording for upload: $voiceRecordingPath');
         } catch (e) {

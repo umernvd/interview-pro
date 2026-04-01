@@ -504,11 +504,12 @@ class TranscriptionService {
         '$contextInfo\n\n'
         'SPECIFIC DIARIZATION RULES:\n'
         '1. **Acoustic Ground Truth**: The numeric IDs are high-fidelity. If "Speaker 0" talks, it is usually the same person.\n'
-        '2. **Candidate Attribution**: The candidate provides technical explanations, uses specialized terminology, and explains their experience.\n'
-        '3. **Interviewer Attribution**: Interviewers ask questions, provide feedback, and guide the conversation flow.\n'
-        '4. **Semantic Merging**: If Deepgram splits a single person into two IDs (e.g., Speaker 0 and Speaker 1) due to a stutter or noise, but their sentences are semantically continuous, MERGE them into the same role label.\n'
-        '5. **Role Labels**: Use exactly "Candidate", "Interviewer 1", or "Interviewer 2".\n'
-        '6. IF THE PROVIDED TEXT IS EMPTY, SILENT, OR NONSENSICAL, RETURN: {"transcript": []}\n\n'
+        '2. **Interviewer Attribution (HIGHEST PRIORITY)**: Any segment that is a QUESTION (ends with "?"), gives instructions ("Tell me about...", "Explain...", "Can you..."), or introduces a topic IS the Interviewer. Label it "Interviewer 1".\n'
+        '3. **Candidate Attribution**: Segments that ANSWER questions, explain technical concepts, describe personal experience, or respond to prompts belong to the Candidate.\n'
+        '4. **Single Speaker Fallback**: If the raw text has only ONE speaker ID (e.g., only "Speaker 0"), you MUST still split turns by detecting question/answer boundaries in the dialogue. Do NOT label everything as "Candidate".\n'
+        '5. **Semantic Merging**: If Deepgram splits a single person into two IDs due to a stutter or noise but sentences are semantically continuous, MERGE them.\n'
+        '6. **Role Labels**: Use exactly "Candidate", "Interviewer 1", or "Interviewer 2".\n'
+        '7. IF THE PROVIDED TEXT IS EMPTY, SILENT, OR NONSENSICAL, RETURN: {"transcript": []}\n\n'
         'JSON FORMAT REQUIREMENT:\n'
         'Return ONLY a JSON object with a "transcript" array. Example (FOR FORMATTING ONLY, DO NOT COPY TEXT):\n'
         '{\n'
@@ -558,6 +559,7 @@ class TranscriptionService {
 
       // 2. Semantic Stage: Use Llama 3 to assign roles to the acoustic IDs
       debugPrint('🧠 Using Groq Llama for Semantic Role Assignment...');
+      debugPrint('📝 Raw acoustic text passed to Llama:\n$rawAcousticText');
       final structuredJson = await _diarizeWithGroq(
         rawAcousticText,
         role: role,
