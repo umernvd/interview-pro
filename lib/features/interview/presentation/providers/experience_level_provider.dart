@@ -38,6 +38,34 @@ class ExperienceLevelProvider extends BaseProvider<ExperienceLevel> {
     );
   }
 
+  /// Load experience levels filtered by role
+  Future<void> loadExperienceLevelsByRole(String roleId) async {
+    setLoading(true);
+    setError(null);
+
+    try {
+      debugPrint('📥 Fetching experience levels for roleId: $roleId...');
+      final levels = await _repository.getExperienceLevelsByRole(roleId);
+
+      if (levels.isNotEmpty) {
+        setItems(levels);
+        markBackendTried();
+        debugPrint(
+          '✅ Successfully loaded ${levels.length} experience levels for role: $roleId',
+        );
+      } else {
+        debugPrint('❌ No experience levels found for roleId: $roleId');
+        setError('No experience levels available for this role');
+      }
+    } catch (e) {
+      debugPrint('❌ Error loading experience levels by role: $e');
+      setError(e.toString());
+      _loadFallbackLevels();
+    } finally {
+      setLoading(false);
+    }
+  }
+
   /// Load experience levels in background without blocking UI
   void loadExperienceLevelsInBackground() {
     loadExperienceLevels();

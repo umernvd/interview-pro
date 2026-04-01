@@ -42,7 +42,8 @@ class _ExperienceLevelPageState extends State<ExperienceLevelPage> {
     );
     // Load after first frame so the widget tree is ready
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _experienceLevelProvider.loadExperienceLevels();
+      // Load levels filtered by the selected role
+      _experienceLevelProvider.loadExperienceLevelsByRole(widget.selectedRole);
     });
   }
 
