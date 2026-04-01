@@ -5,9 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'appwrite_service.dart';
+import 'service_locator.dart';
 import '../providers/auth_state_provider.dart';
 import '../config/appwrite_config.dart';
 import '../../features/auth/data/models/interviewer_model.dart';
+import '../../shared/domain/repositories/interview_repository.dart';
 
 /// Service for handling magic auth code authentication
 /// Manages login, session restoration, and logout operations
@@ -224,6 +226,25 @@ class AuthService {
       debugPrint('✅ Destroyed Appwrite session');
     } catch (e) {
       debugPrint('⚠️ Error destroying session (may already be logged out): $e');
+    }
+
+    // Clear local interview history so the next user doesn't see previous user's data
+    try {
+      final sharedPrefs = await SharedPreferences.getInstance();
+      await sharedPrefs.remove('stored_interviews');
+      await sharedPrefs.remove('stored_responses');
+      debugPrint('✅ Cleared local interview history on logout');
+    } catch (e) {
+      debugPrint('⚠️ Failed to clear local interview history on logout: $e');
+    }
+
+    // Clear in-memory interview cache to prevent data leakage between users
+    try {
+      final interviewRepository = sl<InterviewRepository>();
+      await interviewRepository.clearAllInterviews();
+      debugPrint('✅ Cleared in-memory interview cache on logout');
+    } catch (e) {
+      debugPrint('⚠️ Failed to clear interview cache on logout: $e');
     }
 
     // Clear local state and cache regardless of session deletion result

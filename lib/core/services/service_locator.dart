@@ -98,7 +98,7 @@ Future<void> initializeDependencies() async {
   );
 
   sl.registerLazySingleton<UploadQueueService>(
-    () => UploadQueueService(sl<SyncRemoteDatasource>()),
+    () => UploadQueueService(sl<AuthStateProvider>()),
   );
 
   sl.registerLazySingleton<DataManagementService>(
