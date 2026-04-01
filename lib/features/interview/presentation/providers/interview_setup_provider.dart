@@ -110,7 +110,7 @@ class InterviewSetupProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print('🎯🎯🎯 SETUP PROVIDER: Calling getRandomQuestions() 🎯🎯🎯');
+      debugPrint('🎯🎯🎯 SETUP PROVIDER: Calling getRandomQuestions() 🎯🎯🎯');
       // Pass the role and level IDs to the repository using the API
       final allQuestions = await _questionRepository.getRandomQuestions(
         count: 100,
@@ -118,7 +118,7 @@ class InterviewSetupProvider extends ChangeNotifier {
         experienceLevel: _selectedLevel!.id,
       );
       _availableQuestions = allQuestions;
-      print(
+      debugPrint(
         '✅ SETUP PROVIDER SUCCESS: Successfully routed to the Next.js API!',
       );
       debugPrint(

@@ -203,7 +203,7 @@ class InterviewQuestionRemoteDatasourceImpl
     String? experienceLevel,
   }) async {
     try {
-      print(
+      debugPrint(
         '🎯🎯🎯 CALLING getRandomQuestions() - THIS IS THE CORRECT METHOD! 🎯🎯🎯',
       );
       // Validate auth state
@@ -216,8 +216,10 @@ class InterviewQuestionRemoteDatasourceImpl
       // Build query parameters
       final queryParams = <String, String>{
         'companyId': companyId,
-        'roleId': ?roleSpecific,
-        'experienceLevelId': ?experienceLevel,
+        if (roleSpecific != null && roleSpecific.isNotEmpty)
+          'roleId': roleSpecific,
+        if (experienceLevel != null && experienceLevel.isNotEmpty)
+          'experienceLevelId': experienceLevel,
       };
 
       // 🔍 NETWORK BOUNDARY DIAGNOSTIC
@@ -231,7 +233,7 @@ class InterviewQuestionRemoteDatasourceImpl
         _randomQuestionsApiUrl,
       ).replace(queryParameters: queryParams);
 
-      print('🌐 FINAL API URL: $uri');
+      debugPrint('🌐 FINAL API URL: $uri');
       debugPrint('🔍 Fetching questions with URL: $uri');
       debugPrint('🔄 Fetching random questions from: $uri');
 
