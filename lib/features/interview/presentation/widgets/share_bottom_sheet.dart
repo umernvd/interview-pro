@@ -72,31 +72,32 @@ class ShareBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 32),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildShareOption(
-                context,
-                icon: Icons.chat_bubble_outline,
-                label: 'WhatsApp',
-                color: const Color(0xFF25D366),
-                onTap: () => _shareToApp(context, 'WhatsApp'),
-              ),
-              _buildShareOption(
-                context,
-                icon: Icons.email_outlined,
-                label: 'Email',
+          // Share button
+          GestureDetector(
+            onTap: () => _shareToNative(context),
+            child: Container(
+              width: double.infinity,
+              height: 56,
+              decoration: BoxDecoration(
                 color: AppColors.primary,
-                onTap: () => _shareToApp(context, 'Email'),
+                borderRadius: BorderRadius.circular(12),
               ),
-              _buildShareOption(
-                context,
-                icon: Icons.more_horiz,
-                label: 'More',
-                color: const Color(0xFF64748B),
-                onTap: () => _shareToNative(context),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.share, color: Colors.white, size: 24),
+                  SizedBox(width: 12),
+                  Text(
+                    'Share Report',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
           const SizedBox(height: 32),
 
@@ -127,47 +128,6 @@ class ShareBottomSheet extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Widget _buildShareOption(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 28),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF475569),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _shareToApp(BuildContext context, String appName) async {
-    // Both apps will use the native share sheet since direct deep-linking
-    // to attachments is inconsistent across OS versions in Flutter.
-    // However, the intent is captured and we show a clear UI.
-    await _shareToNative(context);
   }
 
   Future<void> _shareToNative(BuildContext context) async {

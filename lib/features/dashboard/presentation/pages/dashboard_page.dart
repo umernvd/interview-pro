@@ -7,6 +7,7 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/app_router.dart';
 import '../../../../shared/domain/entities/entities.dart';
 import '../providers/dashboard_provider.dart';
+import '../../../history/presentation/providers/history_provider.dart';
 import '../../../history/presentation/widgets/history_content_widget.dart';
 import '../../../settings/presentation/widgets/settings_content_widget.dart';
 
@@ -687,28 +688,41 @@ class _DashboardPageState extends State<DashboardPage> {
 
   /// Shows search dialog
   void _showSearchDialog() {
+    final historyProvider = context.read<HistoryProvider>();
+    final searchController = TextEditingController(
+      text: historyProvider.searchQuery,
+    );
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Search Interviews'),
         content: TextField(
+          controller: searchController,
+          autofocus: true,
           decoration: const InputDecoration(
             hintText: 'Search by candidate name...',
             prefixIcon: Icon(Icons.search),
           ),
-          onChanged: (value) {
-            // Search functionality can be implemented here
+          onSubmitted: (value) {
+            historyProvider.searchInterviews(value);
+            Navigator.pop(dialogContext);
+            setState(() => _selectedIndex = 1); // Switch to History tab
           },
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            onPressed: () {
+              historyProvider.clearSearch();
+              Navigator.pop(dialogContext);
+            },
+            child: const Text('Clear'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
-              // Search action can be implemented here
+              historyProvider.searchInterviews(searchController.text);
+              Navigator.pop(dialogContext);
+              setState(() => _selectedIndex = 1); // Switch to History tab
             },
             child: const Text('Search'),
           ),

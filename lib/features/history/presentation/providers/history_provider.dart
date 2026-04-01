@@ -19,6 +19,9 @@ class HistoryProvider extends ChangeNotifier {
   double _averageScore = 0.0;
   int _hiredCount = 0;
 
+  // Search
+  String _searchQuery = '';
+
   // Getters
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -27,6 +30,7 @@ class HistoryProvider extends ChangeNotifier {
   int get totalInterviews => _totalInterviews;
   double get averageScore => _averageScore;
   int get hiredCount => _hiredCount;
+  String get searchQuery => _searchQuery;
 
   /// Sets the loading state
   void setLoading(bool loading) {
@@ -39,6 +43,24 @@ class HistoryProvider extends ChangeNotifier {
     _selectedFilterIndex = index;
     _applyFilter();
     notifyListeners();
+  }
+
+  /// Searches interviews by candidate name (case-insensitive)
+  void searchInterviews(String query) {
+    _searchQuery = query.trim();
+    _applyFilter();
+    notifyListeners();
+    debugPrint(
+      '🔍 Search: "$_searchQuery" - ${_filteredInterviews.length} results',
+    );
+  }
+
+  /// Clears the search and shows all filtered interviews
+  void clearSearch() {
+    _searchQuery = '';
+    _applyFilter();
+    notifyListeners();
+    debugPrint('🔍 Search cleared');
   }
 
   /// Loads interview history data with enhanced error handling
@@ -154,6 +176,17 @@ class HistoryProvider extends ChangeNotifier {
           break;
         default:
           _filteredInterviews = List.from(_allInterviews);
+      }
+
+      // Apply search filter if query is not empty
+      if (_searchQuery.isNotEmpty) {
+        final lowerQuery = _searchQuery.toLowerCase();
+        _filteredInterviews = _filteredInterviews
+            .where(
+              (interview) =>
+                  interview.candidateName.toLowerCase().contains(lowerQuery),
+            )
+            .toList();
       }
 
       // Sort by start time (most recent first)
