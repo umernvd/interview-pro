@@ -17,34 +17,16 @@ class SettingsContentWidget extends StatefulWidget {
 }
 
 class _SettingsContentWidgetState extends State<SettingsContentWidget> {
-  // Settings state - saves immediately when changed
-  bool notificationsEnabled = true;
-  bool autoSaveRecordings = true;
-  String selectedLanguage = 'English';
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.backgroundLight, // Background light color from HTML
+      color: AppColors.backgroundLight,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          20,
-          16,
-          20,
-          20, // Significantly reduced bottom padding
-        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
         child: Column(
           children: [
-            // General Settings Section
-            const SizedBox(height: 12),
-            _buildGeneralSection(),
-            const SizedBox(height: 24),
-
-            // Interview Settings Section
-            _buildInterviewSettingsSection(),
-            const SizedBox(height: 24),
-
             // Data Settings Section
+            const SizedBox(height: 12),
             _buildDataSection(),
             const SizedBox(height: 24),
 
@@ -60,165 +42,6 @@ class _SettingsContentWidgetState extends State<SettingsContentWidget> {
           ],
         ),
       ),
-    );
-  }
-
-  /// Builds the general settings section
-  Widget _buildGeneralSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section Header
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 4),
-          child: Text(
-            'GENERAL',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[500],
-              letterSpacing: 1.2,
-            ),
-          ),
-        ),
-
-        // Settings Card
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[100]!),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 4,
-                offset: const Offset(0, 1),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              // Language Setting
-              _buildSettingItem(
-                title: 'Language',
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      selectedLanguage,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.chevron_right,
-                      size: 20,
-                      color: Colors.grey[400],
-                    ),
-                  ],
-                ),
-                onTap: () {
-                  _showLanguageDialog();
-                },
-              ),
-
-              // Divider
-              _buildDivider(),
-
-              // Notifications Setting
-              _buildSettingItem(
-                title: 'Notifications',
-                trailing: _buildToggleSwitch(
-                  value: notificationsEnabled,
-                  onChanged: (value) {
-                    setState(() {
-                      notificationsEnabled = value;
-                    });
-                    // Settings save automatically - no need for save button
-                    _saveSettings();
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Builds the interview settings section
-  Widget _buildInterviewSettingsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section Header
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 4),
-          child: Text(
-            'INTERVIEW SETTINGS',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[500],
-              letterSpacing: 1.2,
-            ),
-          ),
-        ),
-
-        // Settings Card
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[100]!),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 4,
-                offset: const Offset(0, 1),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              // Question Sets Setting
-              _buildSettingItem(
-                title: 'Question Sets',
-                trailing: Icon(
-                  Icons.chevron_right,
-                  size: 20,
-                  color: Colors.grey[400],
-                ),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Managed via web dashboard'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                },
-              ),
-
-              // Divider
-              _buildDivider(),
-
-              // Auto-save recordings Setting
-              _buildSettingItem(
-                title: 'Auto-save recordings',
-                trailing: _buildToggleSwitch(
-                  value: autoSaveRecordings,
-                  onChanged: (value) {
-                    setState(() {
-                      autoSaveRecordings = value;
-                    });
-                    // Settings save automatically
-                    _saveSettings();
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -257,22 +80,6 @@ class _SettingsContentWidgetState extends State<SettingsContentWidget> {
           ),
           child: Column(
             children: [
-              // Export Data Setting
-              _buildSettingItem(
-                title: 'Export Data',
-                trailing: Icon(
-                  Icons.download,
-                  size: 20,
-                  color: Colors.grey[400],
-                ),
-                onTap: () {
-                  _showExportDialog();
-                },
-              ),
-
-              // Divider
-              _buildDivider(),
-
               // Clear History Setting
               _buildSettingItem(
                 title: 'Clear History',
@@ -334,48 +141,6 @@ class _SettingsContentWidgetState extends State<SettingsContentWidget> {
                   '1.0.0',
                   style: TextStyle(fontSize: 16, color: Colors.grey[500]),
                 ),
-              ),
-
-              // Divider
-              _buildDivider(),
-
-              // Privacy Policy Setting
-              _buildSettingItem(
-                title: 'Privacy Policy',
-                trailing: Icon(
-                  Icons.chevron_right,
-                  size: 20,
-                  color: Colors.grey[400],
-                ),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Coming soon'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                },
-              ),
-
-              // Divider
-              _buildDivider(),
-
-              // Terms of Service Setting
-              _buildSettingItem(
-                title: 'Terms of Service',
-                trailing: Icon(
-                  Icons.chevron_right,
-                  size: 20,
-                  color: Colors.grey[400],
-                ),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Coming soon'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                },
               ),
             ],
           ),
@@ -491,140 +256,6 @@ class _SettingsContentWidgetState extends State<SettingsContentWidget> {
     );
   }
 
-  /// Builds a divider line
-  Widget _buildDivider() {
-    return Container(
-      height: 1,
-      margin: const EdgeInsets.only(left: 16),
-      color: const Color(0xFFF3E8E9),
-    );
-  }
-
-  /// Builds a toggle switch
-  Widget _buildToggleSwitch({
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return GestureDetector(
-      onTap: () => onChanged(!value),
-      child: Container(
-        width: 51,
-        height: 31,
-        decoration: BoxDecoration(
-          color: value ? AppColors.primary : const Color(0xFFF3E8E9),
-          borderRadius: BorderRadius.circular(15.5),
-        ),
-        child: AnimatedAlign(
-          duration: const Duration(milliseconds: 200),
-          alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            width: 27,
-            height: 27,
-            margin: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(13.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 2,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Saves settings (automatically when settings change)
-  void _saveSettings() {
-    // Settings are automatically saved when changed
-    // In a real app, this would use SharedPreferences or similar
-    debugPrint(
-      'Settings saved: notifications=$notificationsEnabled, autoSave=$autoSaveRecordings, language=$selectedLanguage',
-    );
-  }
-
-  /// Shows language selection dialog
-  void _showLanguageDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Language'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: const Text('English'),
-              leading: Icon(
-                selectedLanguage == 'English'
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
-                color: selectedLanguage == 'English'
-                    ? AppColors.primary
-                    : Colors.grey,
-              ),
-              onTap: () {
-                setState(() {
-                  selectedLanguage = 'English';
-                });
-                _saveSettings();
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text('Spanish'),
-              leading: Icon(
-                selectedLanguage == 'Spanish'
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
-                color: selectedLanguage == 'Spanish'
-                    ? AppColors.primary
-                    : Colors.grey,
-              ),
-              onTap: () {
-                setState(() {
-                  selectedLanguage = 'Spanish';
-                });
-                _saveSettings();
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Shows export data dialog
-  void _showExportDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Export Data'),
-        content: const Text(
-          'Your interview data will be exported as a CSV file.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Export functionality - in a real app this would generate and share a file
-              _exportData();
-            },
-            child: const Text('Export'),
-          ),
-        ],
-      ),
-    );
-  }
-
   /// Shows clear history confirmation dialog
   void _showClearHistoryDialog() {
     showDialog(
@@ -642,7 +273,6 @@ class _SettingsContentWidgetState extends State<SettingsContentWidget> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              // Clear history functionality - in a real app this would clear the database
               _clearHistory();
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.primary),
@@ -653,24 +283,13 @@ class _SettingsContentWidgetState extends State<SettingsContentWidget> {
     );
   }
 
-  /// Export data functionality
-  void _exportData() {
-    // In a real app, this would generate a CSV/JSON file and share it
-  }
-
   /// Clear history functionality
   Future<void> _clearHistory() async {
     try {
-      // Clear history via provider
       await context.read<HistoryProvider>().clearAllHistory();
 
-      // Refresh dashboard statistics as well
       if (mounted) {
         context.read<DashboardProvider>().refresh();
-      }
-
-      if (mounted) {
-        // History cleared
       }
     } catch (e) {
       if (mounted) {
