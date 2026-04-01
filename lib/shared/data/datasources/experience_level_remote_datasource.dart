@@ -90,15 +90,71 @@ class ExperienceLevelRemoteDatasourceImpl
         databaseId: AppwriteConfig.databaseId,
         collectionId: _collectionId,
         queries: [
-          Query.equal('roleId', roleId),
           Query.equal('isActive', true),
           Query.equal('companyId', companyId),
           Query.orderAsc('sortOrder'),
         ],
       );
 
-      return response.documents.map(_docToEntity).toList();
+      // Filter by roleId - check if roleId is in the roleIds array (new format)
+      // or matches single roleId (legacy format)
+      final allLevels = response.documents.map(_docToEntity).toList();
+
+      final filteredLevels = <ExperienceLevel>[];
+      for (int i = 0; i < response.documents.length; i++) {
+        final doc = response.documents[i];
+        final docData = doc.data;
+
+        // Handle both old format (roleId: string) and new format (roleIds: array)
+        final roleIds = docData['roleIds'];
+        final legacyRoleId = docData['roleId'];
+
+        bool isRoleMatch = false;
+
+        // Check new format: roleIds array
+        if (roleIds is List) {
+          isRoleMatch = roleIds.contains(roleId);
+        }
+        // Check legacy format: single roleId string
+        else if (legacyRoleId is String && legacyRoleId.isNotEmpty) {
+          isRoleMatch = legacyRoleId == roleId;
+        }
+        // Include if no roleId/roleIds specified (shared across all roles)
+        else if ((roleIds == null || (roleIds is List && roleIds.isEmpty)) &&
+            (legacyRoleId == null || legacyRoleId.toString().isEmpty)) {
+          isRoleMatch = true;
+        }
+
+        if (isRoleMatch) {
+          filteredLevels.add(allLevels[i]);
+        }
+      }
+
+      debugPrint(
+        '🔍 Found ${filteredLevels.length} experience levels for roleId: $roleId',
+      );
+
+      // Debug: Log what we found in the database
+      for (int i = 0; i < response.documents.length; i++) {
+        final doc = response.documents[i];
+        final docData = doc.data;
+        debugPrint(
+          '📋 Level: ${docData['title']}, roleIds: ${docData['roleIds']}, roleId: ${docData['roleId']}',
+        );
+      }
+
+      // Fallback: If no role-specific levels found, return all company levels
+      // This handles the case where same level is shared across multiple roles
+      if (filteredLevels.isEmpty) {
+        debugPrint(
+          '⚠️ No role-specific levels found for roleId: $roleId, returning all company levels as fallback',
+        );
+        return allLevels;
+      }
+
+      return filteredLevels;
     } catch (e) {
+      debugPrint('❌ Error fetching experience levels by role: $e');
       return [];
     }
   }

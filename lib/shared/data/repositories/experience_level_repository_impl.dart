@@ -14,6 +14,11 @@ class ExperienceLevelRepositoryImpl implements ExperienceLevelRepository {
   }
 
   @override
+  Future<List<ExperienceLevel>> getExperienceLevelsByRole(String roleId) async {
+    return await _remoteDatasource.getExperienceLevelsByRole(roleId);
+  }
+
+  @override
   Future<ExperienceLevel> createExperienceLevel({
     required String title,
     required String description,
