@@ -54,9 +54,21 @@ android {
             // Code obfuscation and optimization
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             
-            // TODO: Configure proper signing for production release
-            // For now, using debug keys for development builds
-            signingConfig = signingConfigs.getByName("debug")
+            // Configure proper signing for production release
+            // Uses keystore from gradle.properties (INTERVIEW_PRO_KEYSTORE_PATH, INTERVIEW_PRO_KEYSTORE_PASSWORD, etc.)
+            // For development: uses debug keys. For production: configure gradle.properties with real keystore
+            signingConfig = if (project.hasProperty("INTERVIEW_PRO_KEYSTORE_PATH")) {
+                signingConfigs.create("release") {
+                    storeFile = file(project.property("INTERVIEW_PRO_KEYSTORE_PATH") as String)
+                    storePassword = project.property("INTERVIEW_PRO_KEYSTORE_PASSWORD") as String
+                    keyAlias = project.property("INTERVIEW_PRO_KEY_ALIAS") as String
+                    keyPassword = project.property("INTERVIEW_PRO_KEY_PASSWORD") as String
+                }
+                signingConfigs.getByName("release")
+            } else {
+                // Fallback to debug signing for development builds
+                signingConfigs.getByName("debug")
+            }
         }
     }
 

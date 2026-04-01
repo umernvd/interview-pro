@@ -13,6 +13,21 @@
 # Keep model classes for JSON serialization
 -keep class com.interviewpro.app.models.** { *; }
 
+# Keep Dart model classes and enums (critical for JSON deserialization)
+-keep class * extends java.lang.Enum {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+    public java.lang.String name();
+}
+
+# Keep all Dart-generated model classes
+-keep class com.example.interview_pro_app.** { *; }
+-keepclassmembers class com.example.interview_pro_app.** {
+    public <init>(...);
+    public <methods>;
+    public <fields>;
+}
+
 # Keep native methods
 -keepclasseswithmembernames class * {
     native <methods>;
