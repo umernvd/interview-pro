@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
 /// Represents a single turn in an interview conversation
 class TranscriptTurn {
@@ -22,11 +23,20 @@ class TranscriptTurn {
       speaker.toLowerCase().contains('speaker 2');
 }
 
+/// Error prefix for transcription errors
+const String sttErrorPrefix = 'STT_ERROR:';
+
 /// Utility for parsing raw transcript text into a structured conversation
 class TranscriptParser {
   /// Parses a transcript string into a list of [TranscriptTurn]s.
   static List<TranscriptTurn> parse(String rawTranscript) {
     if (rawTranscript.isEmpty) return [];
+
+    // Check for transcription errors and return empty list gracefully
+    if (rawTranscript.trim().startsWith(sttErrorPrefix)) {
+      debugPrint('⚠️ Transcription not available: ${rawTranscript.trim()}');
+      return [];
+    }
 
     // Detect if the string starts with a JSON bracket (Structured Diarization)
     final trimmed = rawTranscript.trim();

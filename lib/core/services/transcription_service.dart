@@ -113,6 +113,7 @@ class TranscriptionService {
         })
         .catchError((e) {
           debugPrint('❌ Proactive STT failed for $interviewId: $e');
+          _statusController.add({interviewId: '[]'});
         });
   }
 
@@ -130,7 +131,8 @@ class TranscriptionService {
     String? level,
   }) async {
     if (_apiKey.isEmpty || _apiKey == 'YOUR_GEMINI_API_KEY_HERE') {
-      return '$errorPrefix Gemini API Key not found. Please set GEMINI_API_KEY in .env';
+      debugPrint('⚠️ Gemini API Key not configured. Transcription skipped.');
+      return '[]';
     }
 
     try {
@@ -181,9 +183,11 @@ class TranscriptionService {
     } catch (e) {
       debugPrint('❌ STT Error: $e');
       if (e.toString().contains('429')) {
-        return '$errorPrefix AI Speed Limit reached. Please wait 30 seconds and try again.';
+        debugPrint('⚠️ AI Speed Limit reached. Returning empty transcript.');
+      } else {
+        debugPrint('⚠️ AI Transcription failed. Returning empty transcript.');
       }
-      return '$errorPrefix AI Transcription failed: ${e.toString().split('\n').first}';
+      return '[]';
     }
   }
 

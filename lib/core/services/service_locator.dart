@@ -11,10 +11,8 @@ import 'interview_session_manager.dart';
 import 'voice_recording_service.dart';
 import 'data_management_service.dart';
 import 'transcription_service.dart';
-import 'drive_service.dart';
 import 'upload_queue_service.dart';
 import 'interview_media_upload_service.dart';
-import '../providers/auth_provider.dart';
 import '../providers/auth_state_provider.dart';
 import '../../shared/data/datasources/sync_remote_datasource.dart';
 import 'auth_service.dart';
@@ -71,15 +69,6 @@ Future<void> initializeDependencies() async {
 
   sl.registerLazySingleton<InterviewQuestionRepository>(
     () => InterviewQuestionRepositoryImpl(sl()),
-  );
-
-  // Services
-  sl.registerLazySingleton<DriveService>(
-    () => DriveService(), // Client updated dynamically by AuthProvider
-  );
-
-  sl.registerLazySingleton<AuthProvider>(
-    () => AuthProvider(sl<DriveService>()),
   );
 
   // Magic Auth Code Login - AuthStateProvider and AuthService
