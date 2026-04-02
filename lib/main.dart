@@ -14,7 +14,6 @@ import 'features/interview/presentation/providers/interview_question_provider.da
 import 'features/interview/presentation/providers/report_data_provider.dart';
 import 'features/interview/presentation/providers/voice_recording_provider.dart';
 import 'features/interview/presentation/providers/cv_upload_provider.dart';
-import 'core/providers/auth_provider.dart';
 
 import 'dart:async';
 import 'core/services/crash_reporting_service.dart';
@@ -80,9 +79,7 @@ class InterviewProApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => SplashProvider(sl<AuthProvider>()),
-        ),
+        ChangeNotifierProvider(create: (_) => SplashProvider()),
         ChangeNotifierProvider(create: (_) => DashboardProvider(sl())),
         ChangeNotifierProvider(create: (_) => HistoryProvider(sl())),
         ChangeNotifierProvider(
@@ -93,7 +90,6 @@ class InterviewProApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => InterviewQuestionProvider(sl())),
         ChangeNotifierProvider(create: (_) => ReportDataProvider(sl())),
         ChangeNotifierProvider(create: (_) => VoiceRecordingProvider(sl())),
-        ChangeNotifierProvider(create: (_) => sl<AuthProvider>()),
         ChangeNotifierProvider(create: (_) => CvUploadProvider(sl())),
       ],
       child: MaterialApp.router(
