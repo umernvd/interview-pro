@@ -1,16 +1,34 @@
+import 'package:flutter/foundation.dart' show kDebugMode, kProfileMode;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// API Configuration for the Interview Pro App
 /// Centralized configuration for all API endpoints
 class ApiConfig {
-  // Load base URL from .env file, fallback to default if not set
+  // Environment-specific URLs
+  static const String _debugUrl =
+      'https://harlan-sheaflike-raymond.ngrok-free.dev';
+  static const String _releaseUrl =
+      'https://interview-admin.speedforcehosting.com';
+  static const String _profileUrl =
+      'https://interview-admin.speedforcehosting.com';
+
+  // Load base URL based on environment (priority: env var > build mode)
   static String get baseUrl {
+    // Priority 1: Environment variable (allows override for any mode)
     final envUrl = dotenv.get('API_BASE_URL', fallback: '');
     if (envUrl.isNotEmpty) {
       return envUrl;
     }
-    // Fallback to hardcoded URL if .env not configured
-    return 'https://harlan-sheaflike-raymond.ngrok-free.dev';
+
+    // Priority 2: Build-mode specific URL
+    if (kDebugMode) {
+      return _debugUrl;
+    } else if (kProfileMode) {
+      return _profileUrl;
+    } else {
+      // kReleaseMode
+      return _releaseUrl;
+    }
   }
 
   /// API endpoint for fetching random questions
