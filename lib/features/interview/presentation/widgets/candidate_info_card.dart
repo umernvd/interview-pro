@@ -49,7 +49,7 @@ class _CandidateInfoCardState extends State<CandidateInfoCard> {
         children: [
           _buildCandidateInfo(),
 
-          if (widget.candidateEmail != null && widget.cvUrl != null) ...[
+          if (widget.candidateEmail != null || widget.cvUrl != null) ...[
             const SizedBox(height: 24),
             const Divider(height: 1, color: Color(0xFFE2E8F0)),
             const SizedBox(height: 16),
@@ -103,24 +103,38 @@ class _CandidateInfoCardState extends State<CandidateInfoCard> {
   }
 
   Widget _buildCvSection() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // View CV Button
-        OutlinedButton.icon(
-          onPressed: () => _viewCv(widget.cvUrl!),
-          icon: const Icon(Icons.description_outlined, size: 18),
-          label: const Text('View CV'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            side: const BorderSide(color: AppColors.primary),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+    if (widget.cvUrl != null) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          OutlinedButton.icon(
+            onPressed: () => _viewCv(widget.cvUrl!),
+            icon: const Icon(Icons.description_outlined, size: 18),
+            label: const Text('View CV'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.primary),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
             ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    } else if (widget.candidateEmail != null) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.email_outlined, size: 18, color: Colors.grey[600]),
+          const SizedBox(width: 8),
+          Text(
+            widget.candidateEmail!,
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+          ),
+        ],
+      );
+    }
+    return const SizedBox.shrink();
   }
 
   String _formatDate(DateTime date) {

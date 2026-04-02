@@ -308,17 +308,7 @@ class _InterviewQuestionPageState extends State<InterviewQuestionPage>
 
   Widget _buildLoadingState() {
     return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(color: AppColors.primary),
-          SizedBox(height: 16),
-          Text(
-            'Loading interview questions...',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
-          ),
-        ],
-      ),
+      child: CircularProgressIndicator(color: AppColors.primary),
     );
   }
 

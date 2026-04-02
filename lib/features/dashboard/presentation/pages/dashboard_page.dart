@@ -95,33 +95,28 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       child: Row(
         children: [
-          // Logo and Title
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.description,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                AppStrings.appName,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ],
+          // Logo
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.mic, color: Colors.white, size: 20),
+          ),
+
+          const Spacer(),
+
+          // App Name (centered)
+          const Text(
+            AppStrings.appName,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.5,
+            ),
           ),
 
           const Spacer(),
@@ -624,28 +619,33 @@ class _DashboardPageState extends State<DashboardPage> {
       child: Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(
-              icon: Icons.home,
-              label: 'Home',
-              isSelected: _selectedIndex == 0,
-              onTap: () {
-                context.read<DashboardProvider>().refresh();
-                setState(() => _selectedIndex = 0);
-              },
+            Expanded(
+              child: _buildNavItem(
+                icon: Icons.home,
+                label: 'Home',
+                isSelected: _selectedIndex == 0,
+                onTap: () {
+                  context.read<DashboardProvider>().refresh();
+                  setState(() => _selectedIndex = 0);
+                },
+              ),
             ),
-            _buildNavItem(
-              icon: Icons.history,
-              label: 'History',
-              isSelected: _selectedIndex == 1,
-              onTap: () => setState(() => _selectedIndex = 1),
+            Expanded(
+              child: _buildNavItem(
+                icon: Icons.history,
+                label: 'History',
+                isSelected: _selectedIndex == 1,
+                onTap: () => setState(() => _selectedIndex = 1),
+              ),
             ),
-            _buildNavItem(
-              icon: Icons.settings,
-              label: 'Settings',
-              isSelected: _selectedIndex == 2,
-              onTap: () => setState(() => _selectedIndex = 2),
+            Expanded(
+              child: _buildNavItem(
+                icon: Icons.settings,
+                label: 'Settings',
+                isSelected: _selectedIndex == 2,
+                onTap: () => setState(() => _selectedIndex = 2),
+              ),
             ),
           ],
         ),
@@ -661,8 +661,9 @@ class _DashboardPageState extends State<DashboardPage> {
   }) {
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

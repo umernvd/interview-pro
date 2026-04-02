@@ -122,17 +122,7 @@ class _InterviewSetupPageState extends State<InterviewSetupPage> {
   Widget _buildContent(RoleProvider roleProvider) {
     if (roleProvider.isLoading) {
       return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(color: AppColors.primary),
-            SizedBox(height: 16),
-            Text(
-              'Loading roles...',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-          ],
-        ),
+        child: CircularProgressIndicator(color: AppColors.primary),
       );
     }
 
