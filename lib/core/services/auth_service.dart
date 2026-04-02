@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'appwrite_service.dart';
 import 'service_locator.dart';
+import 'cache_manager.dart';
 import '../providers/auth_state_provider.dart';
 import '../config/appwrite_config.dart';
 import '../../features/auth/data/models/interviewer_model.dart';
@@ -100,6 +101,9 @@ class AuthService {
         } catch (e) {
           debugPrint('⚠️ Failed to clear local interview history: $e');
         }
+        // Clear all cached data (roles, questions, etc.) for company isolation
+        CacheManager.clear();
+        debugPrint('✅ Cache cleared for company data isolation');
       }
 
       await _saveToCache(
@@ -299,6 +303,8 @@ class AuthService {
       _secureStorage.delete(key: _companyIdKey),
       _secureStorage.delete(key: _interviewerIdKey),
     ]);
+    // Clear all cached data (roles, questions, etc.) for company isolation
+    CacheManager.clear();
   }
 
   /// Query interviewers collection with normalized email and auth code
